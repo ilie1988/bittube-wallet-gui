@@ -27,7 +27,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.7
+import QtQuick 2.9
 import QtQuick.Controls 2.0
 import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.1
@@ -46,22 +46,19 @@ Item {
     signal accepted()
     signal rejected()
 
-    function open() {
-        inactiveOverlay.visible = true
+    function open(prepopulate) {
         leftPanel.enabled = false
         middlePanel.enabled = false
-        titleBar.enabled = false
-        show()
+        titleBar.state = "essentials"
         root.visible = true;
         input.focus = true;
-        input.text = "";
+        input.text = prepopulate ? prepopulate : "";
     }
 
     function close() {
-        inactiveOverlay.visible = false
         leftPanel.enabled = true
         middlePanel.enabled = true
-        titleBar.enabled = true
+        titleBar.state = "default"
         root.visible = false;
     }
 
@@ -76,19 +73,19 @@ Item {
 
             Layout.fillWidth: true
             Layout.alignment: Qt.AlignHCenter
-            Layout.maximumWidth: 400 * scaleRatio
+            Layout.maximumWidth: 400
 
             Label {
                 id: label
                 Layout.fillWidth: true
 
-                font.pixelSize: 16 * scaleRatio
+                font.pixelSize: 16
                 font.family: MoneroComponents.Style.fontLight.name
 
                 color: MoneroComponents.Style.white
             }
 
-            TextField {
+            MoneroComponents.Input {
                 id : input
                 focus: true
                 Layout.topMargin: 6
@@ -96,22 +93,24 @@ Item {
                 horizontalAlignment: TextInput.AlignLeft
                 verticalAlignment: TextInput.AlignVCenter
                 font.family: MoneroComponents.Style.fontLight.name
-                font.pixelSize: 24 * scaleRatio
+                font.pixelSize: 24
                 KeyNavigation.tab: okButton
                 bottomPadding: 10
                 leftPadding: 10
                 topPadding: 10
                 color: MoneroComponents.Style.defaultFontColor
-                selectionColor: MoneroComponents.Style.dimmedFontColor
-                selectedTextColor: MoneroComponents.Style.defaultFontColor
+                selectionColor: MoneroComponents.Style.textSelectionColor
+                selectedTextColor: MoneroComponents.Style.textSelectedColor
 
                 background: Rectangle {
                     radius: 2
-                    border.color: Qt.rgba(255, 255, 255, 0.35)
+                    border.color: MoneroComponents.Style.inputBorderColorActive
                     border.width: 1
-                    color: MoneroComponents.Style.white
+                    color: MoneroComponents.Style.blackTheme ? "black" : "#A9FFFFFF"
                 }
 
+                Keys.enabled: root.visible
+                Keys.onEnterPressed: Keys.onReturnPressed(event)
                 Keys.onReturnPressed: {
                     root.close()
                     root.accepted()
@@ -125,7 +124,7 @@ Item {
             // Ok/Cancel buttons
             RowLayout {
                 id: buttons
-                spacing: 16 * scaleRatio
+                spacing: 16
                 Layout.topMargin: 16
                 Layout.alignment: Qt.AlignRight
 
@@ -146,7 +145,7 @@ Item {
                     small: true
                     width: 120
                     fontSize: 14
-                    text: qsTr("Ok")
+                    text: qsTr("Ok") + translationManager.emptyString
                     KeyNavigation.tab: cancelButton
                     onClicked: {
                         root.close()

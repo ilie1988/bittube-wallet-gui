@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2014-2019, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -26,31 +26,30 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.7
+import QtQuick 2.9
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0
+import FontAwesome 1.0
+
 import "../../components" as MoneroComponents
+import "../../components/effects" as MoneroEffects
 
 Rectangle{
     color: "transparent"
-    height: 1400
     Layout.fillWidth: true
+    property alias nodeHeight: root.height
 
     /* main layout */
     ColumnLayout {
         id: root
-        anchors.margins: (isMobile)? 17 * scaleRatio : 20 * scaleRatio
+        anchors.margins: 20
         anchors.topMargin: 0
 
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.right: parent.right
 
-        spacing: 0 * scaleRatio
-        property int labelWidth: 120
-        property int editWidth: 400
-        property int lineEditFontSize: 14 * scaleRatio
-        property int buttonWidth: 110
+        spacing: 0
 
         Rectangle {
             Layout.fillWidth: true
@@ -60,7 +59,7 @@ Rectangle{
             Rectangle {
                 id: localNodeDivider
                 Layout.fillWidth: true
-                anchors.topMargin: 0 * scaleRatio
+                anchors.topMargin: 0
                 anchors.left: parent.left
                 anchors.right: parent.right
                 height: 1
@@ -73,7 +72,7 @@ Rectangle{
                 Layout.fillHeight: true
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                color: MoneroComponents.Style.dividerColor
+                color: MoneroComponents.Style.blackTheme ? "white" : "darkgrey"
                 width: 2
             }
 
@@ -90,48 +89,47 @@ Rectangle{
                     height: 32
                     width: 32
                     anchors.left: parent.left
-                    anchors.leftMargin: 16 * scaleRatio
+                    anchors.leftMargin: 16
                     anchors.verticalCenter: parent.verticalCenter
 
-                    Image{
-                        height: 27
-                        width: 27
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
-                        source: "../../images/settings_local.png"
+                    MoneroComponents.Label {
+                        fontSize: 32
+                        text: FontAwesome.home
+                        fontFamily: FontAwesome.fontFamilySolid
+                        anchors.centerIn: parent
+                        fontColor: MoneroComponents.Style.defaultFontColor
+                        styleName: "Solid"
                     }
                 }
 
-                Text {
+                MoneroComponents.TextPlain {
                     id: localNodeHeader
                     anchors.left: localNodeIcon.right
-                    anchors.leftMargin: 14 * scaleRatio
+                    anchors.leftMargin: 14
                     anchors.top: parent.top
                     color: MoneroComponents.Style.defaultFontColor
+                    opacity: MoneroComponents.Style.blackTheme ? 1.0 : 0.8
                     font.bold: true
                     font.family: MoneroComponents.Style.fontRegular.name
-                    font.pixelSize: 16 * scaleRatio
+                    font.pixelSize: 16
                     text: qsTr("Local node") + translationManager.emptyString
                 }
 
-                TextArea {
+                Text {
                     id: localNodeArea
                     anchors.top: localNodeHeader.bottom
-                    anchors.topMargin: 4 * scaleRatio
+                    anchors.topMargin: 4
                     anchors.left: localNodeIcon.right
-                    anchors.leftMargin: 14 * scaleRatio
-                    color: MoneroComponents.Style.defaultFontColor
+                    anchors.leftMargin: 14
+                    color: MoneroComponents.Style.dimmedFontColor
                     font.family: MoneroComponents.Style.fontRegular.name
-                    font.pixelSize: 15 * scaleRatio
+                    font.pixelSize: 15
                     horizontalAlignment: TextInput.AlignLeft
-                    selectByMouse: false
                     wrapMode: Text.WordWrap;
-                    textMargin: 0
                     leftPadding: 0
                     topPadding: 0
                     text: qsTr("The blockchain is downloaded to your computer. Provides higher security and requires more local storage.") + translationManager.emptyString
                     width: parent.width - (localNodeIcon.width + localNodeIcon.anchors.leftMargin + anchors.leftMargin)
-                    readOnly: true
 
                     // @TODO: Legacy. Remove after Qt 5.8.
                     // https://stackoverflow.com/questions/41990013
@@ -160,7 +158,7 @@ Rectangle{
             Rectangle {
                 id: remoteNodeDivider
                 Layout.fillWidth: true
-                anchors.topMargin: 0 * scaleRatio
+                anchors.topMargin: 0
                 anchors.left: parent.left
                 anchors.right: parent.right
                 height: 1
@@ -173,7 +171,7 @@ Rectangle{
                 Layout.fillHeight: true
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
-                color: MoneroComponents.Style.dividerColor
+                color: MoneroComponents.Style.blackTheme ? "white" : "darkgrey"
                 width: 2
             }
 
@@ -190,49 +188,47 @@ Rectangle{
                     height: 32
                     width: 32
                     anchors.left: parent.left
-                    anchors.leftMargin: 16 * scaleRatio
+                    anchors.leftMargin: 16
                     anchors.verticalCenter: parent.verticalCenter
 
-                    Image{
-                        height: 27
-                        width: 22
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
-                        source: "../../images/settings_remote.png"
+                    MoneroComponents.Label {
+                        fontSize: 28
+                        text: FontAwesome.cloud
+                        fontFamily: FontAwesome.fontFamilySolid
+                        styleName: "Solid"
+                        anchors.centerIn: parent
+                        fontColor: MoneroComponents.Style.defaultFontColor
                     }
                 }
 
-                Text {
+                MoneroComponents.TextPlain {
                     id: remoteNodeHeader
                     anchors.left: remoteNodeIcon.right
-                    anchors.leftMargin: 14 * scaleRatio
+                    anchors.leftMargin: 14
                     anchors.top: parent.top
                     color: MoneroComponents.Style.defaultFontColor
+                    opacity: MoneroComponents.Style.blackTheme ? 1.0 : 0.8
                     font.bold: true
                     font.family: MoneroComponents.Style.fontRegular.name
-                    font.pixelSize: 16 * scaleRatio
+                    font.pixelSize: 16
                     text: qsTr("Remote node") + translationManager.emptyString
                 }
 
-                TextArea {
+                Text {
                     id: remoteNodeArea
                     anchors.top: remoteNodeHeader.bottom
-                    anchors.topMargin: 4 * scaleRatio
+                    anchors.topMargin: 4
                     anchors.left: remoteNodeIcon.right
-                    anchors.leftMargin: 14 * scaleRatio
-                    color: MoneroComponents.Style.defaultFontColor
+                    anchors.leftMargin: 14
+                    color: MoneroComponents.Style.dimmedFontColor
                     font.family: MoneroComponents.Style.fontRegular.name
-                    font.pixelSize: 15 * scaleRatio
-                    activeFocusOnPress: false
+                    font.pixelSize: 15
                     horizontalAlignment: TextInput.AlignLeft
-                    selectByMouse: false
                     wrapMode: Text.WordWrap;
-                    textMargin: 0
                     leftPadding: 0
                     topPadding: 0
                     text: qsTr("Uses a third-party server to connect to the BitTube network. Less secure, but easier on your computer.") + translationManager.emptyString
                     width: parent.width - (remoteNodeIcon.width + remoteNodeIcon.anchors.leftMargin + anchors.leftMargin)
-                    readOnly: true
 
                     // @TODO: Legacy. Remove after Qt 5.8.
                     // https://stackoverflow.com/questions/41990013
@@ -246,7 +242,6 @@ Rectangle{
                     cursorShape: Qt.PointingHandCursor
                     anchors.fill: parent
                     onClicked: {
-                        persistentSettings.useRemoteNode = true;
                         appWindow.connectRemoteNode();
                     }
                 }
@@ -255,7 +250,7 @@ Rectangle{
             Rectangle {
                 id: localNodeBottomDivider
                 Layout.fillWidth: true
-                anchors.topMargin: 0 * scaleRatio
+                anchors.topMargin: 0
                 anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.bottom: parent.bottom
@@ -268,66 +263,76 @@ Rectangle{
         ColumnLayout {
             id: remoteNodeLayout
             anchors.margins: 0
-            spacing: 20 * scaleRatio
+            spacing: 20
             Layout.fillWidth: true
             Layout.topMargin: 20
-            visible: !isMobile && persistentSettings.useRemoteNode
+            visible: persistentSettings.useRemoteNode
 
             MoneroComponents.WarningBox {
-                Layout.topMargin: 26 * scaleRatio
-                Layout.bottomMargin: 6 * scaleRatio
+                Layout.topMargin: 26
+                Layout.bottomMargin: 6
                 text: qsTr("To find a remote node, type 'BitTube remote node' into your favorite search engine. Please ensure the node is run by a trusted third-party.") + translationManager.emptyString
             }
 
             MoneroComponents.RemoteNodeEdit {
                 id: remoteNodeEdit
-                Layout.minimumWidth: 100 * scaleRatio
-
-                lineEditBackgroundColor: "transparent"
-                lineEditFontColor: MoneroComponents.Style.defaultFontColor
-                lineEditFontBold: false
-                lineEditBorderColor: MoneroComponents.Style.defaultFontColor
-                labelFontSize: 14 * scaleRatio
-                placeholderFontSize: 15 * scaleRatio
+                Layout.minimumWidth: 100
+                placeholderFontSize: 15
 
                 daemonAddrLabelText: qsTr("Address")
                 daemonPortLabelText: qsTr("Port")
 
                 property var rna: persistentSettings.remoteNodeAddress
                 daemonAddrText: rna.search(":") != -1 ? rna.split(":")[0].trim() : ""
-                daemonPortText: rna.search(":") != -1 ? (rna.split(":")[1].trim() == "") ? "18081" : rna.split(":")[1] : ""
+                daemonPortText: rna.search(":") != -1 ? (rna.split(":")[1].trim() == "") ? appWindow.getDefaultDaemonRpcPort(persistentSettings.nettype) : rna.split(":")[1] : ""
                 onEditingFinished: {
                     persistentSettings.remoteNodeAddress = remoteNodeEdit.getAddress();
-                    console.log("setting remote node to " + persistentSettings.remoteNodeAddress)
+                    console.log("setting remote node to " + persistentSettings.remoteNodeAddress);
+                    if (persistentSettings.is_trusted_daemon) {
+                        persistentSettings.is_trusted_daemon = !persistentSettings.is_trusted_daemon
+                        currentWallet.setTrustedDaemon(persistentSettings.is_trusted_daemon)
+                        setTrustedDaemonCheckBox.checked = !setTrustedDaemonCheckBox.checked
+                        appWindow.showStatusMessage(qsTr("Remote node updated. Trusted daemon has been reset. Mark again, if desired."), 8);
+                    }
                 }
             }
 
             GridLayout {
-                columns: (isMobile) ? 1 : 2
+                columns: 2
                 columnSpacing: 32
 
                 MoneroComponents.LineEdit {
                     id: daemonUsername
                     Layout.fillWidth: true
-                    labelText: "Daemon username"
+                    labelText: qsTr("Daemon username") + translationManager.emptyString
                     text: persistentSettings.daemonUsername
                     placeholderText: qsTr("(optional)") + translationManager.emptyString
-                    placeholderFontSize: 15 * scaleRatio
-                    labelFontSize: 14 * scaleRatio
-                    fontSize: 15 * scaleRatio
+                    placeholderFontSize: 15
+                    labelFontSize: 14
+                    fontSize: 15
                 }
 
                 MoneroComponents.LineEdit {
                     id: daemonPassword
                     Layout.fillWidth: true
-                    labelText: "Daemon password"
+                    labelText: qsTr("Daemon password") + translationManager.emptyString
                     text: persistentSettings.daemonPassword
                     placeholderText: qsTr("Password") + translationManager.emptyString
                     echoMode: TextInput.Password
-                    placeholderFontSize: 15 * scaleRatio
-                    labelFontSize: 14 * scaleRatio
-                    fontSize: 15 * scaleRatio
+                    placeholderFontSize: 15
+                    labelFontSize: 14
+                    fontSize: 15
                 }
+            }
+
+            MoneroComponents.CheckBox {
+                id: setTrustedDaemonCheckBox
+                checked: persistentSettings.is_trusted_daemon
+                onClicked: {
+                    persistentSettings.is_trusted_daemon = !persistentSettings.is_trusted_daemon
+                    currentWallet.setTrustedDaemon(persistentSettings.is_trusted_daemon)
+                }
+                text: qsTr("Mark as Trusted Daemon") + translationManager.emptyString
             }
 
             MoneroComponents.StandardButton {
@@ -351,13 +356,13 @@ Rectangle{
 
         ColumnLayout {
             id: localNodeLayout
-            spacing: 20 * scaleRatio
+            spacing: 20
             Layout.topMargin: 40
-            visible: !isMobile && !persistentSettings.useRemoteNode
+            visible: !persistentSettings.useRemoteNode
 
             MoneroComponents.StandardButton {
                 small: true
-                text: (appWindow.daemonRunning ? qsTr("Stop local node") : qsTr("Start daemon")) + translationManager.emptyString
+                text: (appWindow.daemonRunning ? qsTr("Stop daemon") : qsTr("Start daemon")) + translationManager.emptyString
                 onClicked: {
                     if (appWindow.daemonRunning) {
                         appWindow.stopDaemon();
@@ -373,12 +378,13 @@ Rectangle{
                     id: blockchainFolder
                     Layout.preferredWidth: 200
                     Layout.fillWidth: true
-                    fontSize: 15 * scaleRatio
-                    labelFontSize: 14 * scaleRatio
-                    property string style: "<style type='text/css'>a {cursor:pointer;text-decoration: none; color: #00abff}</style>"
+                    fontSize: 15
+                    labelFontSize: 14
+                    property string style: "<style type='text/css'>a {cursor:pointer;text-decoration: none; color: #FF6C3C}</style>"
                     labelText: qsTr("Blockchain location") + style + qsTr(" <a href='#'> (change)</a>") + translationManager.emptyString
                     placeholderText: qsTr("(default)") + translationManager.emptyString
-                    placeholderFontSize: 15 * scaleRatio
+                    placeholderFontSize: 15
+                    readOnly: true
                     text: {
                         if(persistentSettings.blockchainDataDir.length > 0){
                             return persistentSettings.blockchainDataDir;
@@ -399,35 +405,27 @@ Rectangle{
             MoneroComponents.LineEditMulti {
                 id: daemonFlags
                 Layout.fillWidth: true
-                labelFontSize: 14 * scaleRatio
-                fontSize: 15 * scaleRatio
+                labelFontSize: 14
+                fontSize: 15
                 wrapMode: Text.WrapAnywhere
                 labelText: qsTr("Daemon startup flags") + translationManager.emptyString
                 placeholderText: qsTr("(optional)") + translationManager.emptyString
-                placeholderFontSize: 15 * scaleRatio
+                placeholderFontSize: 15
                 text: persistentSettings.daemonFlags
                 addressValidation: false
                 onEditingFinished: persistentSettings.daemonFlags = daemonFlags.text;
             }
 
             RowLayout {
-                visible: !isMobile && !persistentSettings.useRemoteNode
+                visible: !persistentSettings.useRemoteNode
 
                 ColumnLayout {
                     Layout.fillWidth: true
 
                     MoneroComponents.RemoteNodeEdit {
                         id: bootstrapNodeEdit
-                        Layout.minimumWidth: 100 * scaleRatio
-                        Layout.bottomMargin: 20 * scaleRatio
-    
-                        lineEditBackgroundColor: "transparent"
-                        lineEditFontColor: MoneroComponents.Style.defaultFontColor
-                        lineEditBorderColor: MoneroComponents.Style.inputBorderColorActive
-                        placeholderFontSize: 15 * scaleRatio
-                        labelFontSize: 14 * scaleRatio
-                        lineEditFontBold: false
-                        lineEditFontSize: 15 * scaleRatio
+                        Layout.minimumWidth: 100
+                        Layout.bottomMargin: 20
 
                         daemonAddrLabelText: qsTr("Bootstrap Address")
                         daemonPortLabelText: qsTr("Bootstrap Port")
@@ -435,13 +433,17 @@ Rectangle{
                         daemonPortText: {
                             var node_split = persistentSettings.bootstrapNodeAddress.split(":");
                             if(node_split.length == 2){
-                                (node_split[1].trim() == "") ? "18081" : node_split[1];
+                                (node_split[1].trim() == "") ? appWindow.getDefaultDaemonRpcPort(persistentSettings.nettype) : node_split[1];
                             } else {
                                 return ""
                             }
                         }
                         onEditingFinished: {
-                            persistentSettings.bootstrapNodeAddress = daemonAddrText ? bootstrapNodeEdit.getAddress() : "";
+                            if (daemonAddrText == "auto") {
+                                persistentSettings.bootstrapNodeAddress = daemonAddrText;
+                            } else {
+                                persistentSettings.bootstrapNodeAddress = daemonAddrText ? bootstrapNodeEdit.getAddress() : "";
+                            }
                             console.log("setting bootstrap node to " + persistentSettings.bootstrapNodeAddress)
                         }
                     }
