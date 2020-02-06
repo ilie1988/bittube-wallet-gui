@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -148,7 +149,7 @@ Item {
                 font.pixelSize: 16
                 font.family: MoneroComponents.Style.fontLight.name
 
-                color: MoneroComponents.Style.defaultFontColor
+                color: MoneroComponents.Style.passwordDialogHeaderFontColor
             }
 
             Label {

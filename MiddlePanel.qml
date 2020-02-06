@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -188,6 +189,20 @@ Rectangle {
             clip: true
             boundsBehavior: isMac ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
 
+            states: State {
+                name: "autoscroll"
+                PropertyChanges {
+                    target: mainFlickable
+                    contentY: stackView.height - height
+                }
+            }
+            onMovementEnded: {
+                if (contentY === stackView.height - height) {
+                    state = "autoscroll"
+                } else {
+                    state = ""
+                }
+            }
             ScrollBar.vertical: ScrollBar {
                 parent: root
                 anchors.left: parent.right

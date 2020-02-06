@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The BitTube Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -33,10 +34,10 @@ import QtQuick.Controls.Styles 1.1
 import QtQuick.Dialogs 1.2
 import QtGraphicalEffects 1.0
 
-import moneroComponents.Wallet 1.0
-import moneroComponents.PendingTransaction 1.0
-import moneroComponents.NetworkType 1.0
-import moneroComponents.Settings 1.0
+import bittubeComponents.Wallet 1.0
+import bittubeComponents.PendingTransaction 1.0
+import bittubeComponents.NetworkType 1.0
+import bittubeComponents.Settings 1.0
 
 import "components"
 import "components" as MoneroComponents
@@ -45,10 +46,11 @@ import "pages/merchant" as MoneroMerchant
 import "wizard"
 import "js/Utils.js" as Utils
 import "js/Windows.js" as Windows
+import "version.js" as Version
 
 ApplicationWindow {
     id: appWindow
-    title: "Monero" + (walletName ? " - " + walletName : "")
+    title: "BitTube" + (walletName ? " - " + walletName : "")
     minimumWidth: 750
     minimumHeight: 450
 
@@ -57,6 +59,7 @@ ApplicationWindow {
     property bool ctrlPressed: false
     property alias persistentSettings : persistentSettings
     property var currentWallet;
+    property bool disconnected: currentWallet ? currentWallet.disconnected : false
     property var transaction;
     property var transactionDescription;
     property var walletPassword
@@ -64,7 +67,7 @@ ApplicationWindow {
     property bool daemonSynced: false
     property bool walletSynced: false
     property int maxWindowHeight: (isAndroid || isIOS)? screenHeight : (screenHeight < 900)? 720 : 800;
-    property bool daemonRunning: false
+    property bool daemonRunning: !persistentSettings.useRemoteNode && !disconnected
     property alias toolTip: toolTip
     property string walletName
     property bool viewOnly: false
@@ -97,8 +100,8 @@ ApplicationWindow {
                 "xmreur": "https://api.kraken.com/0/public/Ticker?pair=XMREUR"
             },
             "coingecko": {
-                "xmrusd": "https://api.coingecko.com/api/v3/simple/price?ids=monero&vs_currencies=usd",
-                "xmreur": "https://api.coingecko.com/api/v3/simple/price?ids=monero&vs_currencies=eur"
+                "xmrusd": "https://api.coingecko.com/api/v3/simple/price?ids=bittube&vs_currencies=usd",
+                "xmreur": "https://api.coingecko.com/api/v3/simple/price?ids=bittube&vs_currencies=eur"
             },
             "cryptocompare": {
                 "xmrusd": "https://min-api.cryptocompare.com/data/price?fsym=XMR&tsyms=USD",
@@ -219,12 +222,6 @@ ApplicationWindow {
     function initialize() {
         console.log("initializing..")
 
-        // Use stored log level
-        if (persistentSettings.logLevel == 5)
-          walletManager.setLogCategories(persistentSettings.logCategories)
-        else
-          walletManager.setLogLevel(persistentSettings.logLevel)
-
         // setup language
         var locale = persistentSettings.locale
         if (locale !== "") {
@@ -254,7 +251,7 @@ ApplicationWindow {
         // wallet already opened with wizard, we just need to initialize it
         var wallet_path = walletPath();
         if(isIOS)
-            wallet_path = moneroAccountsDir + wallet_path;
+            wallet_path = bittubeAccountsDir + wallet_path;
         // console.log("opening wallet at: ", wallet_path, "with password: ", appWindow.walletPassword);
         console.log("opening wallet at: ", wallet_path, ", network type: ", persistentSettings.nettype == NetworkType.MAINNET ? "mainnet" : persistentSettings.nettype == NetworkType.TESTNET ? "testnet" : "stagenet");
 
@@ -340,10 +337,10 @@ ApplicationWindow {
         viewOnly = currentWallet.viewOnly;
 
         // New wallets saves the testnet flag in keys file.
-        if(persistentSettings.nettype != currentWallet.nettype) {
-            console.log("Using network type from keys file")
-            persistentSettings.nettype = currentWallet.nettype;
-        }
+        // if(persistentSettings.nettype != currentWallet.nettype) {
+        //     console.log("Using network type from keys file")
+        //     persistentSettings.nettype = currentWallet.nettype;
+        // }
 
         // connect handlers
         currentWallet.heightRefreshed.connect(onHeightRefreshed);
@@ -431,8 +428,8 @@ ApplicationWindow {
     }
 
     function onUriHandler(uri){
-        if(uri.startsWith("monero://")){
-            var address = uri.substring("monero://".length);
+        if(uri.startsWith("bittube://")){
+            var address = uri.substring("bittube://".length);
 
             var params = {}
             if(address.length === 0) return;
@@ -474,19 +471,11 @@ ApplicationWindow {
         middlePanel.updateStatus();
         leftPanel.networkStatus.connected = status
 
-        // update local daemon status.
-        const isDisconnected = status === Wallet.ConnectionStatus_Disconnected;
-        if (!persistentSettings.useRemoteNode) {
-            daemonRunning = !isDisconnected;
-        } else {
-            daemonRunning = false;
-        }
-
         // Update fee multiplier dropdown on transfer page
         middlePanel.transferView.updatePriorityDropdown();
 
         // If wallet isnt connected, advanced wallet mode and no daemon is running - Ask
-        if (appWindow.walletMode >= 2 && !persistentSettings.useRemoteNode && !walletInitialized && isDisconnected) {
+        if (appWindow.walletMode >= 2 && !persistentSettings.useRemoteNode && !walletInitialized && disconnected) {
             daemonManager.runningAsync(persistentSettings.nettype, function(running) {
                 if (!running) {
                     daemonManagerDialog.open();
@@ -642,7 +631,7 @@ ApplicationWindow {
         }
 
         // Update wallet sync progress
-        leftPanel.isSyncing = (currentWallet.connected() !== Wallet.ConnectionStatus_Disconnected) && !daemonSynced
+        leftPanel.isSyncing = !disconnected && !daemonSynced;
         // Update transfer page status
         middlePanel.updateStatus();
 
@@ -692,7 +681,6 @@ ApplicationWindow {
 
     function onDaemonStarted(){
         console.log("daemon started");
-        daemonRunning = true;
         hideProcessingSplash();
         currentWallet.connected(true);
         // resume refresh
@@ -704,7 +692,6 @@ ApplicationWindow {
     function onDaemonStopped(){
         console.log("daemon stopped");
         hideProcessingSplash();
-        daemonRunning = false;
         currentWallet.connected(true);
     }
 
@@ -713,9 +700,8 @@ ApplicationWindow {
         hideProcessingSplash();
         // resume refresh
         currentWallet.startRefresh();
-        daemonRunning = false;
         informationPopup.title = qsTr("Daemon failed to start") + translationManager.emptyString;
-        informationPopup.text  = error + ".\n\n" + qsTr("Please check your wallet and daemon log for errors. You can also try to start %1 manually.").arg((isWindows)? "monerod.exe" : "monerod")
+        informationPopup.text  = error + ".\n\n" + qsTr("Please check your wallet and daemon log for errors. You can also try to start %1 manually.").arg((isWindows)? "bittubed.exe" : "bittubed")
         informationPopup.icon  = StandardIcon.Critical
         informationPopup.onCloseCallback = null
         informationPopup.open();
@@ -758,7 +744,7 @@ ApplicationWindow {
 
     function onWalletMoneySent(txId, amount) {
         // refresh transaction history here
-        console.log("monero sent found")
+        console.log("bittube sent found")
         currentWallet.history.refresh(currentWallet.currentSubaddressAccount); // this will refresh model
 
         if(middlePanel.state == "History")
@@ -768,7 +754,7 @@ ApplicationWindow {
     function walletsFound() {
         if (persistentSettings.wallet_path.length > 0) {
             if(isIOS)
-                return walletManager.walletExists(moneroAccountsDir + persistentSettings.wallet_path);
+                return walletManager.walletExists(bittubeAccountsDir + persistentSettings.wallet_path);
             else
                 return walletManager.walletExists(persistentSettings.wallet_path);
         }
@@ -883,7 +869,7 @@ ApplicationWindow {
     FileDialog {
         id: saveTxDialog
         title: "Please choose a location"
-        folder: "file://" +moneroAccountsDir
+        folder: "file://" +bittubeAccountsDir
         selectExisting: false;
 
         onAccepted: {
@@ -971,7 +957,7 @@ ApplicationWindow {
                     txid_text += ", "
                 txid_text += txid[i]
             }
-            informationPopup.text  = (viewOnly)? qsTr("Transaction saved to file: %1").arg(path) : qsTr("Monero sent successfully: %1 transaction(s) ").arg(txid.length) + txid_text + translationManager.emptyString
+            informationPopup.text  = (viewOnly)? qsTr("Transaction saved to file: %1").arg(path) : qsTr("TUBE sent successfully: %1 transaction(s) ").arg(txid.length) + txid_text + translationManager.emptyString
             informationPopup.icon  = StandardIcon.Information
             if (transactionDescription.length > 0) {
                 for (var i = 0; i < txid.length; ++i)
@@ -1051,10 +1037,10 @@ ApplicationWindow {
                 informationPopup.icon = StandardIcon.Critical;
             } else if (received > 0) {
                 if (in_pool) {
-                    informationPopup.text = qsTr("This address received %1 monero, but the transaction is not yet mined").arg(walletManager.displayAmount(received));
+                    informationPopup.text = qsTr("This address received %1 TUBE, but the transaction is not yet mined").arg(walletManager.displayAmount(received));
                 }
                 else {
-                    informationPopup.text = qsTr("This address received %1 monero, with %2 confirmation(s).").arg(walletManager.displayAmount(received)).arg(confirmations);
+                    informationPopup.text = qsTr("This address received %1 TUBE, with %2 confirmation(s).").arg(walletManager.displayAmount(received)).arg(confirmations);
                 }
             }
             else {
@@ -1158,11 +1144,11 @@ ApplicationWindow {
             return ticker;
         } else if(resp._url.startsWith("https://api.coingecko.com/api/v3/")){
             var key = currency === "xmreur" ? "eur" : "usd";
-            if(!resp.hasOwnProperty("monero") || !resp["monero"].hasOwnProperty(key)){
+            if(!resp.hasOwnProperty("bittube") || !resp["bittube"].hasOwnProperty(key)){
                 appWindow.fiatApiError("Coingecko API has error(s)");
                 return;
             }
-            return resp["monero"][key];
+            return resp["bittube"][key];
         } else if(resp._url.startsWith("https://min-api.cryptocompare.com/data/")){
             var key = currency === "xmreur" ? "EUR" : "USD";
             if(!resp.hasOwnProperty(key)){
@@ -1283,6 +1269,12 @@ ApplicationWindow {
     }
 
     Component.onCompleted: {
+        // Use stored log level
+        if (persistentSettings.logLevel == 5)
+          walletManager.setLogCategories(persistentSettings.logCategories)
+        else
+          walletManager.setLogLevel(persistentSettings.logLevel)
+
         x = (Screen.width - width) / 2
         y = (Screen.height - maxWindowHeight) / 2
 
@@ -1339,7 +1331,7 @@ ApplicationWindow {
         id: persistentSettings
         fileName: {
             if(isTails && tailsUsePersistence)
-                return homePath + "/Persistent/Monero/monero-core.conf";
+                return homePath + "/Persistent/Monero/bittube-core.conf";
             return "";
         }
 
@@ -1361,6 +1353,11 @@ ApplicationWindow {
         property string daemonUsername: ""
         property string daemonPassword: ""
         property bool transferShowAdvanced: false
+        property bool miningShowStats: false
+        property bool allow_gpu_mining: false
+        property bool startingMining: false
+        property bool stoppingMining: false
+        property bool isMining: false
         property bool receiveShowAdvanced: false
         property bool historyShowAdvanced: false
         property bool historyHumanDates: true
@@ -1782,7 +1779,7 @@ ApplicationWindow {
             property alias text: content.text
             width: content.width + 12
             height: content.height + 17
-            color: "#FF6C3C"
+            color: Style.tooltipBackgroundColor
             //radius: 3
             visible:false;
 
@@ -1867,11 +1864,10 @@ ApplicationWindow {
         const disconnectedTimeoutSec = 30;
         const firstCheckDelaySec = 2;
 
-        const connected = leftPanel.networkStatus.connected !== Wallet.ConnectionStatus_Disconnected;
         const firstRun = appWindow.disconnectedEpoch == 0;
         if (firstRun) {
             appWindow.disconnectedEpoch = Utils.epoch() + firstCheckDelaySec - disconnectedTimeoutSec;
-        } else if (connected) {
+        } else if (!disconnected) {
             appWindow.disconnectedEpoch = Utils.epoch();
         }
 
@@ -1995,9 +1991,9 @@ ApplicationWindow {
             var user_url = parts[2]
             var msg = ""
             if (isMac || isWindows || isLinux) {
-                msg = qsTr("New version of Monero v%1 is available.<br><br>Download:<br>%2<br><br>SHA256 Hash:<br>%3").arg(version).arg(user_url).arg(hash) + translationManager.emptyString
+                msg = qsTr("New version of BitTube v%1 is available.<br><br>Download:<br>%2<br><br>SHA256 Hash:<br>%3").arg(version).arg(user_url).arg(hash) + translationManager.emptyString
             } else {
-                msg = qsTr("New version of Monero v%1 is available. Check out getmonero.org").arg(version) + translationManager.emptyString
+                msg = qsTr("New version of BitTube v%1 is available. Check out getbittube.org").arg(version) + translationManager.emptyString
             }
             notifier.show(msg)
         } else {
@@ -2006,7 +2002,7 @@ ApplicationWindow {
     }
 
     function checkUpdates() {
-        walletManager.checkUpdatesAsync("monero-gui", "gui")
+        walletManager.checkUpdatesAsync("bittube-wallet-gui", "gui", Version.GUI_VERSION)
     }
 
     Timer {

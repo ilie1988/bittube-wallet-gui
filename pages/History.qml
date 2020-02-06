@@ -1,5 +1,6 @@
-// Copyright (c) 2014-2019, The Monero Project
-//
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
+// 
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -1382,7 +1383,7 @@ Rectangle {
             if(root.sortSearchString.length >= 1){
                 if(item.amount && item.amount.toString().startsWith(root.sortSearchString)){
                     txs.push(item);
-                } else if(item.address !== "" && item.address.startsWith(root.sortSearchString)){
+                } else if(item.address !== "" && item.address.toLowerCase().startsWith(root.sortSearchString.toLowerCase())){
                     txs.push(item);
                 } else if(item.blockheight.toString().startsWith(root.sortSearchString)) {
                     txs.push(item);

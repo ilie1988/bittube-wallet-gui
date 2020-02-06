@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -45,6 +46,8 @@ Item {
     property color errorColor : "red"
     property bool error: false
     property alias inputLabel: inputLabel
+    property bool headerBorder: false
+    property string colorBorder: MoneroComponents.Style.datepickerBorderColor
 
     signal dateChanged();
 
@@ -96,6 +99,8 @@ Item {
             radius: 4
             y: 1
             color: datePicker.backgroundColor
+            border.width: datePicker.headerBorder ? 1 : 0
+            border.color: datePicker.colorBorder
         }
 
         RowLayout {

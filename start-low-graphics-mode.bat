@@ -1,5 +1,5 @@
 @echo off
+pushd "%~dp0"
 
 set QMLSCENE_DEVICE=softwarecontext
-
-start /b monero-wallet-gui.exe
+start /b bittube-wallet-gui.exe

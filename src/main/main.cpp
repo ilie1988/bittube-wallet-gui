@@ -1,5 +1,6 @@
 // Copyright (c) 2014-2018, The Monero Project
-//
+// Copyright (c) 2018, The BitTube Project
+// 
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -78,7 +79,7 @@
 #include "QR-Code-scanner/QrCodeScanner.h"
 #endif
 
-#ifdef MONERO_GUI_STATIC
+#ifdef BITTUBE_GUI_STATIC
 
 #include <QtPlugin>
 #if defined(Q_OS_OSX)
@@ -129,6 +130,14 @@ Q_IMPORT_PLUGIN(QMultimediaDeclarativeModule)
 
 #endif
 
+//test------ FIXME: delete this ----
+// #include "src/http-service/httpservice.h"
+// #include "src/miner/minermanager.h"
+//#include <QProcess>
+//#include <QDir>
+//#include <QString>
+//----------------------------------
+
 bool isIOS = false;
 bool isAndroid = false;
 bool isWindows = false;
@@ -178,9 +187,29 @@ int main(int argc, char *argv[])
 
     MainApp app(argc, argv);
 
-    app.setApplicationName("monero-core");
-    app.setOrganizationDomain("getmonero.org");
-    app.setOrganizationName("monero-project");
+    //test------ FIXME: delete this ----
+    //HttpService http_serv();
+    //http_serv.test();
+    //http_serv.sendPingRequest();
+    //http_serv.sendInfoRequest();
+    // http_serv.sendStatsRequest();
+
+    //QProcess *process = new QProcess();
+    //std::cout << "homePath: " << QDir::homePath().toStdString() << std::endl;
+    //std::cout << "currentPath: " << QDir::currentPath().toStdString() << std::endl;
+
+    // C:/Users/Anto/Documents/Development/GRP_workspace/OtherProjects/bittube-coin-gui-wallet
+    //QString file = QDir::currentPath() + "/build/release/bin/miner/bittube-miner.exe";
+    //QString file = QDir::currentPath() + "\miner\ipbc-miner.exe";
+    //process->start(file);
+
+    // MinerManager theMiner(&app);
+
+    //----------------------------------
+
+    app.setApplicationName("bittube-wallet-gui");
+    app.setOrganizationDomain("bit.tube");
+    app.setOrganizationName("bittube");
 
     // Ask to enable Tails OS persistence mode, it affects:
     // - Log file location
@@ -211,7 +240,11 @@ int main(int argc, char *argv[])
     }
 
 #if defined(Q_OS_LINUX)
-    if (isDesktop) app.setWindowIcon(QIcon(":/images/appicon.ico"));
+    if (isDesktop) app.setWindowIcon(QIcon(":/images/appicon-white.ico"));
+#endif
+
+#if defined(Q_OS_WIN)
+    if (isDesktop) app.setWindowIcon(QIcon(":/images/appicon-white.ico"));
 #endif
 
     filter *eventFilter = new filter;
@@ -233,13 +266,13 @@ int main(int argc, char *argv[])
 
     // Log settings
     const QString logPath = getLogPath(parser.value(logPathOption));
-    Monero::Wallet::init(argv[0], "monero-wallet-gui", logPath.toStdString().c_str(), true);
+    Monero::Wallet::init(argv[0], "bittube-wallet-gui", logPath.toStdString().c_str(), true);
     qInstallMessageHandler(messageHandler);
 
     // loglevel is configured in main.qml. Anything lower than
-    // qWarning is not shown here unless MONERO_LOG_LEVEL env var is set
+    // qWarning is not shown here unless BITTUBE_LOG_LEVEL env var is set
     bool logLevelOk;
-    int logLevel = qEnvironmentVariableIntValue("MONERO_LOG_LEVEL", &logLevelOk);
+    int logLevel = qEnvironmentVariableIntValue("BITTUBE_LOG_LEVEL", &logLevelOk);
     if (logLevelOk && logLevel >= 0 && logLevel <= Monero::WalletManagerFactory::LogLevel_Max){
         Monero::WalletManagerFactory::setLogLevel(logLevel);
     }
@@ -425,7 +458,7 @@ int main(int argc, char *argv[])
     if (accountName.isEmpty())
         accountName = qgetenv("USERNAME"); // Windows
     if (accountName.isEmpty())
-        accountName = "My monero Account";
+        accountName = "My BitTube Account";
 
     engine.rootContext()->setContextProperty("defaultAccountName", accountName);
     engine.rootContext()->setContextProperty("homePath", QDir::homePath());

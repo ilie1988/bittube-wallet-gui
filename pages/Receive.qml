@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -49,7 +50,125 @@ Rectangle {
     id: pageReceive
     color: "transparent"
     property var model
+    property var current_address
     property alias receiveHeight: mainLayout.height
+    property alias addressText : pageReceive.current_address
+
+    function makeQRCodeString() {
+        var s = "bittube:"
+        var nfields = 0
+        s += current_address;
+        var amount = amountToReceiveLine.text.trim()
+        if (amount !== "" && amount.slice(-1) !== ".") {
+          s += (nfields++ ? "&" : "?")
+          s += "tx_amount=" + amount
+        }
+        return s
+    }
+
+    function update() {
+        //hide subaddress creation until blockchainheight 110k
+        if (walletManager.blockchainHeight() > 110000){
+            createAddressRow.visible = true;
+        } else {
+            createAddressRow.visible = false;
+        }
+
+        if (!appWindow.currentWallet || !trackingEnabled.checked) {
+            trackingLineText.text = "";
+            trackingModel.clear();
+            return
+        }
+        if (appWindow.currentWallet.connected() == Wallet.ConnectionStatus_Disconnected) {
+            trackingLineText.text = qsTr("WARNING: no connection to daemon");
+            trackingModel.clear();
+            return
+        }
+
+        var model = appWindow.currentWallet.historyModel
+        var count = model.rowCount()
+        var totalAmount = 0
+        var nTransactions = 0
+        var blockchainHeight = 0
+        var txs = []
+
+        for (var i = 0; i < count; ++i) {
+            var idx = model.index(i, 0)
+            var isout = model.data(idx, TransactionHistoryModel.TransactionIsOutRole);
+            var subaddrAccount = model.data(idx, TransactionHistoryModel.TransactionSubaddrAccountRole);
+            var subaddrIndex = model.data(idx, TransactionHistoryModel.TransactionSubaddrIndexRole);
+            if (!isout && subaddrAccount == appWindow.currentWallet.currentSubaddressAccount && subaddrIndex == current_subaddress_table_index) {
+                var amount = model.data(idx, TransactionHistoryModel.TransactionAtomicAmountRole);
+                totalAmount = walletManager.addi(totalAmount, amount)
+                nTransactions += 1
+
+                var txid = model.data(idx, TransactionHistoryModel.TransactionHashRole);
+                var blockHeight = model.data(idx, TransactionHistoryModel.TransactionBlockHeightRole);
+
+                var in_txpool = false;
+                var confirmations = 0;
+                var displayAmount = 0;
+
+                if (blockHeight == 0) {
+                    in_txpool = true;
+                } else {
+                    if (blockchainHeight == 0)
+                        blockchainHeight = walletManager.blockchainHeight()
+                    confirmations = blockchainHeight - blockHeight - 1
+                    displayAmount = model.data(idx, TransactionHistoryModel.TransactionDisplayAmountRole);
+                }
+
+                txs.push({
+                    "amount": displayAmount,
+                    "confirmations": confirmations,
+                    "blockheight": blockHeight,
+                    "in_txpool": in_txpool,
+                    "txid": txid
+                })
+            }
+        }
+
+        // Update tracking status label
+        if (nTransactions == 0) {
+            trackingLineText.text = qsTr("No transaction found yet...") + translationManager.emptyString
+            return
+        }
+        else if(nTransactions === 1){
+            trackingLineText.text = qsTr("Transaction found") + ":" + translationManager.emptyString;
+        } else {
+            trackingLineText.text = qsTr("%1 transactions found").arg(nTransactions) + ":" + translationManager.emptyString
+        }
+
+        var max_tracking = 3;
+        toReceiveSatisfiedLine.text = "";
+        var expectedAmount = walletManager.amountFromString(amountToReceiveLine.text)
+        if (expectedAmount && expectedAmount != amount) {
+            var displayTotalAmount = walletManager.displayAmount(totalAmount)
+            if (amount > expectedAmount) toReceiveSatisfiedLine.text += qsTr("With more TUBE");
+            else if (amount < expectedAmount) toReceiveSatisfiedLine.text = qsTr("With not enough TUBE")
+            toReceiveSatisfiedLine.text += ": " + "<br>" +
+                    qsTr("Expected") + ": " + amountToReceiveLine.text + "<br>" +
+                    qsTr("Total received") + ": " + displayTotalAmount + translationManager.emptyString;
+        }
+
+        trackingModel.clear();
+
+        if (txs.length > 3) {
+            txs.length = 3;
+        }
+
+        txs.forEach(function(tx){
+            trackingModel.append({
+                "amount": tx.amount,
+                "confirmations": tx.confirmations,
+                "blockheight": tx.blockHeight,
+                "in_txpool": tx.in_txpool,
+                "txid": tx.txid
+            });
+        });
+
+        //setTrackingLineText(text + "<br>" + list.join("<br>"))
+    }
 
     function renameSubaddressLabel(_index){
         inputDialog.labelText = qsTr("Set the label of the selected address:") + translationManager.emptyString;

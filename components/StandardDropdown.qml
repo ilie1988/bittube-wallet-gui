@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -48,10 +49,10 @@ Item {
     property int fontHeaderSize: 16
     property int fontItemSize: 14
     property string colorBorder: MoneroComponents.Style.inputBorderColorInActive
-    property string colorHeaderBackground: "transparent"
-    property bool headerBorder: true
+    property string colorHeaderBackground: MoneroComponents.Style.dropdownHeaderBackgroundColor
+    property bool headerBorder: false
     property bool headerFontBold: false
-
+    
     height: dropdownHeight
 
     signal changed();

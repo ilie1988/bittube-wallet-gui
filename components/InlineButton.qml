@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2015, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -43,7 +44,7 @@ Item {
     property string shadowPressedColor: "#B32D00"
     property string shadowReleasedColor: "#FF4304"
     property string pressedColor: "#FF4304"
-    property string releasedColor: "#FF6C3C"
+    property string releasedColor: MoneroComponents.Style.buttonBackgroundColor
     property string icon: ""
     property string textColor: MoneroComponents.Style.inlineButtonTextColor
     property int fontSize: small ? 14 : 16

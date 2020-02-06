@@ -40,6 +40,9 @@
 #include "qt/FutureScheduler.h"
 #include "NetworkType.h"
 
+#include "src/http-service/httpservice.h"
+#include "src/miner/minermanager.h"
+
 class Wallet;
 namespace Monero {
     class WalletManager;
@@ -155,6 +158,8 @@ public:
     Q_INVOKABLE void miningStatusAsync();
     Q_INVOKABLE bool startMining(const QString &address, quint32 threads, bool backgroundMining, bool ignoreBattery);
     Q_INVOKABLE bool stopMining();
+    Q_INVOKABLE void launchMiner();
+    Q_INVOKABLE void killMiner();
 
     // QML missing such functionality, implementing these helpers here
     Q_INVOKABLE QString urlToLocalPath(const QUrl &url) const;

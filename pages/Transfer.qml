@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -82,6 +83,24 @@ Rectangle {
     property bool warningLongPidDescription: descriptionLine.text.match(/^[0-9a-f]{64}$/i)
 
     Clipboard { id: clipboard }
+
+    function scaleValueToMixinCount(scaleValue) {
+        var scaleToMixinCount = [2,3,4,5,6,7,8,9,10,11,12,13,14,16,18,20,22,25];
+        if (scaleValue < scaleToMixinCount.length) {
+            return scaleToMixinCount[scaleValue];
+        } else {
+            return 0;
+        }
+    }
+
+    function isValidOpenAliasAddress(address) {
+      address = address.trim()
+      var dot = address.indexOf('.')
+      if (dot < 0)
+        return false
+      // we can get an awful lot of valid domains, including non ASCII chars... accept anything
+      return true
+    }
 
     function oa_message(text) {
       oaPopup.title = qsTr("OpenAlias error") + translationManager.emptyString
@@ -176,6 +195,7 @@ Rectangle {
                   id: amountLine
                   Layout.fillWidth: true
                   inlineIcon: true
+                  borderDisabled: true
                   labelText: qsTr("<style type='text/css'>a {text-decoration: none; color: #858585; font-size: 14px;}</style>\
                                    Amount <font size='2'>  ( </font> <a href='#'>Change account</a><font size='2'> )</font>")
                              + translationManager.emptyString
@@ -267,7 +287,7 @@ Rectangle {
               labelButtonText: qsTr("Resolve") + translationManager.emptyString
               placeholderText: {
                   if(persistentSettings.nettype == NetworkType.MAINNET){
-                      return "4.. / 8.. / OpenAlias";
+                      return "b.. / b.. / OpenAlias";
                   } else if (persistentSettings.nettype == NetworkType.STAGENET){
                       return "5.. / 7..";
                   } else if(persistentSettings.nettype == NetworkType.TESTNET){
@@ -638,7 +658,7 @@ Rectangle {
                 informationPopup.open();
             } else {
                 informationPopup.title = qsTr("Information") + translationManager.emptyString
-                informationPopup.text  = qsTr("Monero sent successfully") + translationManager.emptyString
+                informationPopup.text  = qsTr("TUBE sent successfully") + translationManager.emptyString
                 informationPopup.icon  = StandardIcon.Information
                 informationPopup.onCloseCallback = null
                 informationPopup.open();
@@ -717,6 +737,7 @@ Rectangle {
         //pageRoot.enabled = false;
 
         switch (currentWallet.connected()) {
+        case Wallet.ConnectionStatus_Connecting:
         case Wallet.ConnectionStatus_Disconnected:
             root.warningContent = messageNotConnected;
             break

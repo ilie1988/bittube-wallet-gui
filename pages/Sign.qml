@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The BitTube Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -339,7 +340,7 @@ Rectangle {
                 labelText: qsTr("Address") + translationManager.emptyString
                 addressValidation: true
                 placeholderFontSize: 16
-                placeholderText: qsTr("Enter the Monero Address (example: 44AFFq5kSiGBoZ...)") + translationManager.emptyString
+                placeholderText: qsTr("Enter the BitTube Address (example: bxAFFq5kSiGBoZ...)") + translationManager.emptyString
                 wrapMode: Text.WrapAnywhere
                 text: ''
             }

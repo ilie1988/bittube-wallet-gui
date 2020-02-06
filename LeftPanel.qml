@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -367,7 +368,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.leftMargin: 20
             }
-
+/*
             // ------------- Account tab ---------------
             MoneroComponents.MenuButton {
                 id: accountButton
@@ -388,7 +389,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.leftMargin: 20
             }
-
+*/
             // ------------- Transfer tab ---------------
             MoneroComponents.MenuButton {
                 id: transferButton
@@ -455,7 +456,7 @@ Rectangle {
             }
 
             // ------------- Merchant tab ---------------
-
+            /*
             MoneroComponents.MenuButton {
                 id: merchantButton
                 visible: appWindow.walletMode >= 2
@@ -477,7 +478,7 @@ Rectangle {
                 anchors.right: parent.right
                 anchors.leftMargin: 20
             }
-
+            */
             // ------------- History tab ---------------
 
             MoneroComponents.MenuButton {
@@ -500,7 +501,7 @@ Rectangle {
                 anchors.leftMargin: 20
             }
 
-            // ------------- Advanced tab ---------------
+            // ------------- Mining tab ---------------
             MoneroComponents.MenuButton {
                 id: advancedButton
                 visible: appWindow.walletMode >= 2
@@ -510,7 +511,8 @@ Rectangle {
                 symbol: qsTr("D") + translationManager.emptyString
                 onClicked: {
                     parent.previousButton.checked = false
-                    parent.previousButton = advancedButton
+                    parent.previousButton = miningButton
+                    panel.miningClicked()
                 }
             }
 
@@ -521,7 +523,7 @@ Rectangle {
                 anchors.leftMargin: 20
             }
 
-            // ------------- Mining tab ---------------
+            // ------------- Advanced tab ---------------
             MoneroComponents.MenuButton {
                 id: miningButton
                 visible: !isAndroid && !isIOS && appWindow.walletMode >= 2
@@ -532,8 +534,7 @@ Rectangle {
                 under: advancedButton
                 onClicked: {
                     parent.previousButton.checked = false
-                    parent.previousButton = miningButton
-                    panel.miningClicked()
+                    parent.previousButton = advancedButton
                 }
             }
 
@@ -667,7 +668,7 @@ Rectangle {
             anchors.bottom: daemonProgressBar.top
             height: 48
             syncType: qsTr("Wallet") + translationManager.emptyString
-            visible: networkStatus.connected
+            visible: !appWindow.disconnected
         }
 
         MoneroComponents.ProgressBar {
@@ -676,7 +677,7 @@ Rectangle {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             syncType: qsTr("Daemon") + translationManager.emptyString
-            visible: networkStatus.connected
+            visible: !appWindow.disconnected
             height: 62
         }
     }

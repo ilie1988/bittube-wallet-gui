@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2015, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -95,7 +96,7 @@ ColumnLayout {
     spacing: 0
     Rectangle {
         id: inputLabelRect
-        color: "transparent"
+        color: MoneroComponents.Style.background
         Layout.fillWidth: true
         height: (inputLabel.height + 10)
         visible: showingHeader ? true : false
@@ -108,7 +109,7 @@ ColumnLayout {
             font.pixelSize: item.labelFontSize
             font.bold: labelFontBold
             textFormat: Text.RichText
-            color: item.labelFontColor
+            color: MoneroComponents.Style.defaultFontColor
             onLinkActivated: inputLabelLinkActivated()
 
             MouseArea {
@@ -165,9 +166,10 @@ ColumnLayout {
         bottomPadding: item.inputPaddingBottom
 
         wrapMode: item.wrapMode
-        fontSize: item.fontSize
-        fontBold: item.fontBold
-        fontColor: item.fontColor
+        fontSize: parent.fontSize
+        fontBold: parent.fontBold
+        z: 2
+        fontColor: MoneroComponents.Style.defaultFontColor
         mouseSelection: item.mouseSelection
         onEditingFinished: item.editingFinished()
         error: item.error
@@ -179,7 +181,7 @@ ColumnLayout {
             anchors.left: parent.left
             anchors.leftMargin: 10
             opacity: item.placeholderOpacity
-            color: item.placeholderColor
+            color: MoneroComponents.Style.defaultFontColor
             font.family: item.placeholderFontFamily
             font.bold: item.placeholderFontBold
             font.pixelSize: item.placeholderFontSize
@@ -203,4 +205,14 @@ ColumnLayout {
             anchors.rightMargin: 8
         }
     }
+
+    Rectangle {
+        id: inputFill
+        color: MoneroComponents.Style.lineEditMultiBackgroundColor
+        anchors.fill: input
+        radius: 4
+        z: 1
+    }
+
+
 }
