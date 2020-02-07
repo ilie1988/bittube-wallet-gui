@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2018, The BitTube Project
-// Copyright (c) 2018, The BitTube Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -39,7 +38,6 @@ Rectangle {
     property alias miningHeight: mainLayout.height
     property double currentHashRate: 0
 
-    /* main layout */
     ColumnLayout {
         id: mainLayout
         Layout.fillWidth: true
@@ -59,18 +57,18 @@ Rectangle {
         MoneroComponents.WarningBox {
             Layout.bottomMargin: 8
             text: qsTr("Mining is only available on local daemons.") + translationManager.emptyString
-            visible: persistentSettings.useRemoteNode
+            visible: !walletManager.isDaemonLocal(appWindow.currentDaemonAddress)
         }
 
         MoneroComponents.WarningBox {
             Layout.bottomMargin: 8
             text: qsTr("Your daemon must be synchronized before you can start mining") + translationManager.emptyString
-            visible: !persistentSettings.useRemoteNode && !appWindow.daemonSynced
+            visible: walletManager.isDaemonLocal(appWindow.currentDaemonAddress) && !appWindow.daemonSynced
         }
 
         MoneroComponents.TextPlain {
             id: soloMainLabel
-            text: qsTr("Mining with your computer helps strengthen the BitTube network. The more that people mine, the harder it is for the network to be attacked, and every little bit helps.\n\nMining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!") + translationManager.emptyString
+            text: qsTr("Mining with your computer helps strengthen the Monero network. The more that people mine, the harder it is for the network to be attacked, and every little bit helps.\n\nMining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!") + translationManager.emptyString
             wrapMode: Text.Wrap
             Layout.fillWidth: true
             font.family: MoneroComponents.Style.fontRegular.name
@@ -201,7 +199,7 @@ Rectangle {
                             } else {
                                 errorPopup.title  = qsTr("Error starting mining") + translationManager.emptyString;
                                 errorPopup.text = qsTr("Couldn't start mining.<br>") + translationManager.emptyString
-                                if (persistentSettings.useRemoteNode)
+                                if (!walletManager.isDaemonLocal(appWindow.currentDaemonAddress))
                                     errorPopup.text += qsTr("Mining is only available on local daemons. Run a local daemon to be able to mine.<br>") + translationManager.emptyString
                                 errorPopup.icon = StandardIcon.Critical
                                 errorPopup.open()
@@ -248,58 +246,20 @@ Rectangle {
                     inputPaddingLeft: 0
                 }
             }
-
-            // Text {
-            //     id: statusText
-            //     text: qsTr("Status: not mining")
-            //     color: MoneroComponents.Style.defaultFontColor
-            //     textFormat: Text.RichText
-            //     wrapMode: Text.Wrap
-            // }
         }
     }
 
     function updateStatusText() {
-        var text = ""
-        if (walletManager.isMining()) {
-            if (text !== "")
-                text += "<br>";
-            text += qsTr("Mining at %1 H/s").arg(walletManager.miningHashRate())
+        if (appWindow.isMining) {
+            statusText.text = qsTr("Mining at %1 H/s").arg(walletManager.miningHashRate()) + translationManager.emptyString;
         }
-        if (text === "") {
-            text += qsTr("Not mining") + translationManager.emptyString;
+        else {
+            statusText.text = qsTr("Not mining") + translationManager.emptyString;
         }
-        statusText.text = qsTr("Status: ") + text
-    }
-
-    function reset_all(){
-        miningResultReportTableModel.set(0, {"value" : ""});
-        miningResultReportTableModel.set(1, {"value" : ""});
-        miningResultReportTableModel.set(2, {"value" : ""});
-        miningResultReportTableModel.set(3, {"value" : ""});
-        resultStatsListView.model = 0;
-        resultStatsListView.model = miningResultReportTableModel;
-
-        miningStatsTableModel.clear();
-
-        for(var n = 0; n <= 4; n ++){
-            topResultStatsModel1.set(n, {"value": ""});
-        }
-
-        for(var n = 0; n <= 4; n ++){
-            topResultStatsModel2.set(n, {"value": ""});
-        }
-
-        connectionReportTableModel.set(0, {"value": ""});
-        connectionReportTableModel.set(1, {"value": ""});
-        connectionReportTableModel.set(2, {"value": ""});
-
-        totalHashSec10SecLabel.text = "";
-        console.log("resetted all");
     }
 
     function onMiningStatus(isMining) {
-        var daemonReady = !persistentSettings.useRemoteNode && appWindow.daemonSynced
+        var daemonReady = walletManager.isDaemonLocal(appWindow.currentDaemonAddress) && appWindow.daemonSynced
         appWindow.isMining = isMining;
         updateStatusText()
         startSoloMinerButton.enabled = !appWindow.isMining && daemonReady
@@ -321,88 +281,14 @@ Rectangle {
         onTriggered: update()
     }
 
-    function readInfoJson() {
-        var infoReqSuccess = walletManager.requestInfo();
-        if(infoReqSuccess == true) {
-            return null;
-        }
-
-        var info_json_str = walletManager.info_json();
-        if (info_json_str == "") {
-            return null;
-        }
-
-        var info_json = JSON.parse(info_json_str);
-        if(info_json.length == 0){
-            return null;
-        }
-
-        if (!info_json.hasOwnProperty("cpu_count")){
-            return null;
-        }
-
-        // set mining flag
-        if (info_json.isMining) {
-            persistentSettings.isMining = true;
-        } else {
-            persistentSettings.isMining = false;
-        }
-
-        return info_json;
-    }
-
-    function readStatsJson() {
-        var statsReqSuccess = walletManager.requestStats();
-        if(statsReqSuccess == true) {
-            return null;
-        }
-
-        var stats_json_str = walletManager.stats_json();
-        if (stats_json_str == "") {
-            return null;
-        }
-
-        var stats_json = JSON.parse(stats_json_str);
-        if(stats_json.length == 0){
-            return null;
-        }
-
-        if (!stats_json.hasOwnProperty("results")){
-            return null;
-        }
-
-        return stats_json;
-    }
-
     function onPageCompleted() {
         console.log("Mining page loaded");
         update()
-        timer.running = !persistentSettings.useRemoteNode
+        timer.running = walletManager.isDaemonLocal(appWindow.currentDaemonAddress)
     }
 
-        walletManager.launchMiner();
-
-        update();
-        // timer.running = walletManager.isDaemonLocal(appWindow.currentDaemonAddress)
-        timer.running = true;
-
-        //update table labels for translations to work
-        connectionReportTableModel.set(0, {"label": qsTr("Pool address") + translationManager.emptyString});
-        connectionReportTableModel.set(1, {"label": qsTr("Connected since") + translationManager.emptyString});
-        connectionReportTableModel.set(2, {"label": qsTr("Pool ping time") + translationManager.emptyString});
-
-        miningResultReportTableModel.set(0, {"label" : qsTr("Difficulty") + translationManager.emptyString});
-        miningResultReportTableModel.set(1, {"label" : qsTr("Good results") + translationManager.emptyString});
-        miningResultReportTableModel.set(2, {"label" : qsTr("Avg result time") + translationManager.emptyString});
-        miningResultReportTableModel.set(3, {"label" : qsTr("Pool-side hashes") + translationManager.emptyString});
-    }
-    
     function onPageClosed() {
         timer.running = false
-
-        if (!persistentSettings.isMining) {
-            walletManager.killMiner();
-        }
     }
 
     Component.onCompleted: {

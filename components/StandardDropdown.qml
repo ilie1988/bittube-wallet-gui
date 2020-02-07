@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -49,10 +48,10 @@ Item {
     property int fontHeaderSize: 16
     property int fontItemSize: 14
     property string colorBorder: MoneroComponents.Style.inputBorderColorInActive
-    property string colorHeaderBackground: MoneroComponents.Style.dropdownHeaderBackgroundColor
-    property bool headerBorder: false
+    property string colorHeaderBackground: "transparent"
+    property bool headerBorder: true
     property bool headerFontBold: false
-    
+
     height: dropdownHeight
 
     signal changed();
@@ -127,7 +126,6 @@ Item {
     Popup {
         id: popup
         padding: 0
-        closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutsideParent
 
         Rectangle {
             id: droplist
@@ -137,6 +135,20 @@ Item {
             clip: true
             height: dropdown.expanded ? columnid.height : 0
             color: dropdown.pressedColor
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.top: parent.top
+                width: 3; height: 3
+                color: dropdown.pressedColor
+            }
+
+            Rectangle {
+                anchors.right: parent.right
+                anchors.top: parent.top
+                width: 3; height: 3
+                color: dropdown.pressedColor
+            }
 
             Behavior on height {
                 NumberAnimation { duration: 100; easing.type: Easing.InQuad }

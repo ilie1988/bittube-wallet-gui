@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -75,7 +74,7 @@ Item {
     property alias labelText: inputLabel.text
     property alias labelColor: inputLabel.color
     property alias labelTextFormat: inputLabel.textFormat
-    property string backgroundColor: MoneroComponents.Style.lineEditBackgroundColor
+    property string backgroundColor: "transparent"
     property string tipText: ""
     property int labelFontSize: 16
     property bool labelFontBold: false

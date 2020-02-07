@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -46,16 +45,18 @@ Item {
     signal accepted()
     signal rejected()
 
-    function open(prepopulate) {
+    function open() {
+        inactiveOverlay.visible = true
         leftPanel.enabled = false
         middlePanel.enabled = false
         titleBar.state = "essentials"
         root.visible = true;
         input.focus = true;
-        input.text = prepopulate ? prepopulate : "";
+        input.text = "";
     }
 
     function close() {
+        inactiveOverlay.visible = false
         leftPanel.enabled = true
         middlePanel.enabled = true
         titleBar.state = "default"
@@ -82,7 +83,7 @@ Item {
                 font.pixelSize: 16
                 font.family: MoneroComponents.Style.fontLight.name
 
-                color: MoneroComponents.Style.white
+                color: MoneroComponents.Style.defaultFontColor
             }
 
             MoneroComponents.Input {
@@ -109,8 +110,6 @@ Item {
                     color: MoneroComponents.Style.blackTheme ? "black" : "#A9FFFFFF"
                 }
 
-                Keys.enabled: root.visible
-                Keys.onEnterPressed: Keys.onReturnPressed(event)
                 Keys.onReturnPressed: {
                     root.close()
                     root.accepted()

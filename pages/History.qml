@@ -1,6 +1,5 @@
-// Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
-// 
+// Copyright (c) 2014-2019, The Monero Project
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -478,6 +477,7 @@ Rectangle {
                                     return;
 
                                 inputDialog.labelText = qsTr("Jump to page (1-%1)").arg(pages) + translationManager.emptyString;
+                                inputDialog.inputText = "1";
                                 inputDialog.onAcceptedCallback = function() {
                                     var pageNumber = parseInt(inputDialog.inputText);
                                     if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= pages) {
@@ -1195,7 +1195,7 @@ Rectangle {
                                 if(res[i].state === 'copyable' && res[i].parent.hasOwnProperty('text')) toClipboard(res[i].parent.text);
                                 if(res[i].state === 'copyable_address') root.toClipboard(address);
                                 if(res[i].state === 'copyable_txkey') root.getTxKey(hash, res[i]);
-                                if(res[i].state === 'set_tx_note') root.editDescription(hash, tx_note);
+                                if(res[i].state === 'set_tx_note') root.editDescription(hash);
                                 if(res[i].state === 'details') root.showTxDetails(hash, paymentId, destinations, subaddrAccount, subaddrIndex, dateTime, displayAmount, isout);
                                 if(res[i].state === 'proof') root.showTxProof(hash, paymentId, destinations, subaddrAccount, subaddrIndex);
                                 doCollapse = false;
@@ -1315,7 +1315,7 @@ Rectangle {
             }
 
             MoneroComponents.StandardButton {
-                visible: !isIOS
+                visible: !isIOS && root.txCount > 0
                 small: true
                 text: qsTr("Export all history") + translationManager.emptyString
                 onClicked: {
@@ -1383,7 +1383,7 @@ Rectangle {
             if(root.sortSearchString.length >= 1){
                 if(item.amount && item.amount.toString().startsWith(root.sortSearchString)){
                     txs.push(item);
-                } else if(item.address !== "" && item.address.toLowerCase().startsWith(root.sortSearchString.toLowerCase())){
+                } else if(item.address !== "" && item.address.startsWith(root.sortSearchString)){
                     txs.push(item);
                 } else if(item.blockheight.toString().startsWith(root.sortSearchString)) {
                     txs.push(item);
@@ -1533,7 +1533,7 @@ Rectangle {
         root.updateFilter();
     }
 
-    function editDescription(_hash, _tx_note){
+    function editDescription(_hash){
         inputDialog.labelText = qsTr("Set description:") + translationManager.emptyString;
         inputDialog.onAcceptedCallback = function() {
             appWindow.currentWallet.setUserNote(_hash, inputDialog.inputText);
@@ -1541,7 +1541,7 @@ Rectangle {
             root.update();
         }
         inputDialog.onRejectedCallback = null;
-        inputDialog.open(_tx_note);
+        inputDialog.open();
     }
 
     function paginationPrevClicked(){
@@ -1599,7 +1599,7 @@ Rectangle {
 
         currentWallet.getTxKeyAsync(hash, function(hash, tx_key) {
             informationPopup.title = qsTr("Transaction details") + translationManager.emptyString;
-            informationPopup.content = buildTxDetailsString(hash, hasPaymentId ? paymentId : null, tx_key, tx_note, destinations, rings, address, address_label, integratedAddress, dateTime, amount);
+            informationPopup.content = buildTxDetailsString(hash, paymentId, tx_key, tx_note, destinations, rings, address, address_label, integratedAddress, dateTime, amount);
             informationPopup.onCloseCallback = null
             informationPopup.open();
         });

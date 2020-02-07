@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -37,6 +36,7 @@ Rectangle {
     id: button
     property alias text: label.text
     property bool checked: false
+    property alias dotColor: dot.color
     property alias symbol: symbolText.text
     property int numSelectedChildren: 0
     property var under: null
@@ -63,7 +63,7 @@ Rectangle {
     height: present ? ((appWindow.height >= 800) ? 44  : 38 ) : 0
 
     LinearGradient {
-        visible: isOpenGL && button.checked || numSelectedChildren > 0
+        visible: isOpenGL && button.checked
         height: parent.height
         width: 260
         anchors.verticalCenter: parent.verticalCenter
@@ -88,10 +88,27 @@ Rectangle {
     // button decorations that are subject to leftMargin offsets
     Rectangle {
         anchors.left: parent.left
-        anchors.leftMargin: 20
+        anchors.leftMargin: parent.getOffset() + 20
         height: parent.height
-        width: 2
-        color: button.checked ? MoneroComponents.Style.buttonBackgroundColor : "transparent"
+        width: button.checked ? 20: 10
+        color: "transparent"
+
+        // dot if unchecked
+        Rectangle {
+            id: dot
+            anchors.centerIn: parent
+            width: button.checked ? 20 : 8
+            height: button.checked ? 20 : 8
+            radius: button.checked ? 20 : 4
+            color: button.dotColor
+            // arrow if checked
+            Image {
+                anchors.centerIn: parent
+                anchors.left: parent.left
+                source: MoneroComponents.Style.menuButtonImageDotArrowSource
+                visible: button.checked
+            }
+        }
 
         // button text
         MoneroComponents.TextPlain {
@@ -101,7 +118,7 @@ Rectangle {
             themeTransitionWhiteColor: MoneroComponents.Style._w_menuButtonTextColor
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.right
-            anchors.leftMargin: button.getOffset() + 8
+            anchors.leftMargin: 8
             font.bold: true
             font.pixelSize: 14
         }
@@ -127,7 +144,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: 12
         font.bold: true
-        color: MoneroComponents.Style.menuButtonTextColor
+        color: button.checked || buttonArea.containsMouse ? MoneroComponents.Style.menuButtonTextColor : dot.color
         visible: appWindow.ctrlPressed
         themeTransition: false
     }

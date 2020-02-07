@@ -1,6 +1,5 @@
-// Copyright (c) 2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
-// 
+// Copyright (c) 2014-2019, The Monero Project
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -37,58 +36,49 @@ Subaddress::Subaddress(Monero::Subaddress *subaddressImpl, QObject *parent)
     getAll();
 }
 
-void Subaddress::getAll() const
+QList<Monero::SubaddressRow*> Subaddress::getAll(bool update) const
 {
     qDebug(__FUNCTION__);
 
     emit refreshStarted();
 
-    {
-        QWriteLocker locker(&m_lock);
-
+    if(update)
         m_rows.clear();
+
+    if (m_rows.empty()){
         for (auto &row: m_subaddressImpl->getAll()) {
             m_rows.append(row);
         }
     }
 
     emit refreshFinished();
+    return m_rows;
 }
 
-bool Subaddress::getRow(int index, std::function<void (Monero::SubaddressRow &row)> callback) const
+Monero::SubaddressRow * Subaddress::getRow(int index) const
 {
-    QReadLocker locker(&m_lock);
-
-    if (index < 0 || index >= m_rows.size())
-    {
-        return false;
-    }
-
-    callback(*m_rows.value(index));
-    return true;
+    return m_rows.at(index);
 }
 
 void Subaddress::addRow(quint32 accountIndex, const QString &label) const
 {
     m_subaddressImpl->addRow(accountIndex, label.toStdString());
-    getAll();
+    getAll(true);
 }
 
 void Subaddress::setLabel(quint32 accountIndex, quint32 addressIndex, const QString &label) const
 {
     m_subaddressImpl->setLabel(accountIndex, addressIndex, label.toStdString());
-    getAll();
+    getAll(true);
 }
 
 void Subaddress::refresh(quint32 accountIndex) const
 {
     m_subaddressImpl->refresh(accountIndex);
-    getAll();
+    getAll(true);
 }
 
 quint64 Subaddress::count() const
 {
-    QReadLocker locker(&m_lock);
-
     return m_rows.size();
 }

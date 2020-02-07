@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -125,10 +124,7 @@ Rectangle {
             Flickable {
                 id: flickable
                 anchors.fill: parent
-                ScrollBar.vertical: ScrollBar {
-                    onActiveChanged: if (!active && !isMac) active = true
-                }
-                boundsBehavior: isMac ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
+                ScrollBar.vertical: ScrollBar { }
 
                 TextArea.flickable: TextArea {
                     id: dialogContent

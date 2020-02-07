@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -147,8 +146,6 @@ Item {
         cursorShape: Qt.PointingHandCursor
     }
 
-    Keys.enabled: button.visible
     Keys.onSpacePressed: doClick()
-    Keys.onEnterPressed: Keys.onReturnPressed(event)
     Keys.onReturnPressed: doClick()
 }

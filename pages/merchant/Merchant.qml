@@ -265,10 +265,7 @@ Item {
                     font.pixelSize: 12
                     font.bold: false
                     color: "white"
-                    text: "<style type='text/css'>a {text-decoration: none; color: #FF6C3C; font-size: 12px;}</style>%1: %2 <a href='#'>(%3)</a>"
-                        .arg(qsTr("Currently selected address"))
-                        .arg(addressLabel)
-                        .arg(qsTr("Change")) + translationManager.emptyString
+                    text: qsTr("<style type='text/css'>a {text-decoration: none; color: #FF6C3C; font-size: 12px;}</style>Currently selected address: ") + addressLabel + qsTr(" <a href='#'>(Change)</a>") + translationManager.emptyString
                     textFormat: Text.RichText
                     themeTransition: false
 
@@ -408,7 +405,7 @@ Item {
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onEntered: {
-                                parent.color = MoneroComponents.Style.blue
+                                parent.color = MoneroComponents.Style.orange
                             }
                             onExited: {
                                 parent.color = parent._color
@@ -585,7 +582,7 @@ Item {
             return
         }
 
-        if (appWindow.disconnected) {
+        if (appWindow.currentWallet.connected() == Wallet.ConnectionStatus_Disconnected) {
             root.trackingError = qsTr("WARNING: no connection to daemon");
             trackingModel.clear();
             return

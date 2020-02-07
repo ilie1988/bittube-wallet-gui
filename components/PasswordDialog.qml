@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
+// Copyright (c) 2014-2019, The Monero Project
 //
 // All rights reserved.
 //
@@ -69,6 +68,7 @@ Item {
         passwordInput1.text = ""
         passwordInput2.text = ""
         passwordInput1.forceActiveFocus();
+        inactiveOverlay.visible = true // draw appwindow inactive
         root.walletName = walletName ? walletName : ""
         errorTextLabel.text = errorText ? errorText : "";
         leftPanel.enabled = false
@@ -106,6 +106,7 @@ Item {
     }
 
     function close() {
+        inactiveOverlay.visible = false
         leftPanel.enabled = true
         middlePanel.enabled = true
         wizard.enabled = true
@@ -124,6 +125,7 @@ Item {
     }
 
     ColumnLayout {
+        z: inactiveOverlay.z + 1
         id: mainLayout
         spacing: 10
         anchors { fill: parent; margins: 35 }
@@ -149,7 +151,7 @@ Item {
                 font.pixelSize: 16
                 font.family: MoneroComponents.Style.fontLight.name
 
-                color: MoneroComponents.Style.passwordDialogHeaderFontColor
+                color: MoneroComponents.Style.defaultFontColor
             }
 
             Label {
@@ -252,7 +254,6 @@ Item {
                 }
 
                 Keys.enabled: root.visible
-                Keys.onEnterPressed: Keys.onReturnPressed(event)
                 Keys.onReturnPressed: {
                     root.close()
                     if (passwordDialogMode) {
@@ -351,8 +352,6 @@ Item {
                     }
                 }
 
-                Keys.enabled: root.visible
-                Keys.onEnterPressed: Keys.onReturnPressed(event)
                 Keys.onReturnPressed: {
                     if (passwordInput1.text === passwordInput2.text) {
                         root.close()

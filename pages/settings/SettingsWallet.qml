@@ -36,8 +36,8 @@ import "../../components" as MoneroComponents
 
 Rectangle {
     color: "transparent"
+    height: 1400
     Layout.fillWidth: true
-    property alias settingsHeight: settingsWallet.height
 
     ColumnLayout {
         id: settingsWallet
@@ -54,7 +54,12 @@ Rectangle {
             description: qsTr("Logs out of this wallet.") + translationManager.emptyString
             title: qsTr("Close this wallet") + translationManager.emptyString
 
-            onClicked: appWindow.showWizard()
+            onClicked: {
+                middlePanel.addressBookView.clearFields();
+                middlePanel.transferView.clearFields();
+                middlePanel.receiveView.clearFields();
+                appWindow.showWizard();
+            }
         }
 
         MoneroComponents.SettingsListItem {

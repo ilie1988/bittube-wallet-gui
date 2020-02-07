@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -59,50 +58,8 @@ Rectangle {
         spacing: 30
         Layout.fillWidth: true
 
-        RowLayout{
-            // TODO: Move the warning box to its own component, so it can be used in multiple places
-            visible: warningText.text !== ""
-  
-            Rectangle {
-                id: statusRect
-                Layout.preferredHeight: warningText.height + 26
-                Layout.fillWidth: true
-  
-                radius: 2
-                border.color: Qt.rgba(255, 255, 255, 0.25)
-                border.width: 1
-                color: "transparent"
-  
-                GridLayout{
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: warningText.height + 40
-  
-                    Image {
-                        Layout.alignment: Qt.AlignVCenter
-                        Layout.preferredHeight: 33
-                        Layout.preferredWidth: 33
-                        Layout.leftMargin: 10
-                        Layout.topMargin: 10
-                        source: "../images/warning.png"
-                    }
-  
-                    Text {
-                        id: warningText
-                        Layout.topMargin: 12 * scaleRatio
-                        Layout.preferredWidth: statusRect.width - 80
-                        Layout.leftMargin: 6
-                        text: qsTr("WARNING: Do not reuse your BitTube keys on another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy." + translationManager.emptyString)
-                        wrapMode: Text.Wrap
-                        font.family: MoneroComponents.Style.fontRegular.name
-                        font.pixelSize: 15 * scaleRatio
-                        color: MoneroComponents.Style.defaultFontColor
-                        textFormat: Text.RichText
-                        onLinkActivated: {
-                            appWindow.startDaemon(appWindow.persistentSettings.daemonFlags);
-                        }
-                    }
-                }
-            }
+        MoneroComponents.WarningBox {
+            text: qsTr("WARNING: Do not reuse your Monero keys on another fork, UNLESS this fork has key reuse mitigations built in. Doing so will harm your privacy.") + translationManager.emptyString;
         }
 
         //! Manage wallet
@@ -125,7 +82,7 @@ Rectangle {
             }
 
             MoneroComponents.WarningBox {
-                text: qsTr("WARNING: Copying your seed to clipboard can expose you to malicious software, which may record your seed and steal your TUBE. Please write down your seed manually.") + translationManager.emptyString
+                text: qsTr("WARNING: Copying your seed to clipboard can expose you to malicious software, which may record your seed and steal your Monero. Please write down your seed manually.") + translationManager.emptyString
             }
 
             MoneroComponents.LineEditMulti {
@@ -324,7 +281,7 @@ Rectangle {
                 secretSpendKey.text = qsTr("(View Only Wallet - No secret spend key available)") + translationManager.emptyString
             }
             // hardware device wallet
-            if(appWindow.currentWallet.isHwBacked() === true) {
+            if(currentWallet.seed === "") {
                 showFullQr.visible = false
                 viewOnlyQRCode.visible = true
                 showViewOnlyQr.visible = false

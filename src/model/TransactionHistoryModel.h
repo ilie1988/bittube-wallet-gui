@@ -45,7 +45,8 @@ class TransactionHistoryModel : public QAbstractListModel
 
 public:
     enum TransactionInfoRole {
-        TransactionDirectionRole = Qt::UserRole + 1,
+        TransactionRole = Qt::UserRole + 1, // for the TransactionInfo object;
+        TransactionDirectionRole,
         TransactionPendingRole,
         TransactionFailedRole,
         TransactionAmountRole,
@@ -95,9 +96,6 @@ public:
 
 signals:
     void transactionHistoryChanged();
-
-private:
-    QVariant parseTransactionInfo(const TransactionInfo &tInfo, int role) const;
 
 private:
     TransactionHistory * m_transactionHistory;

@@ -64,7 +64,7 @@ private:
 signals:
     void daemonStarted() const;
     void daemonStopped() const;
-    void daemonStartFailure(const QString &error) const;
+    void daemonStartFailure() const;
     void daemonConsoleUpdated(QString message) const;
 
 public slots:
@@ -80,7 +80,7 @@ private:
     static QStringList m_clArgs;
     QProcess *m_daemon;
     bool initialized = false;
-    QString m_bittubed;
+    QString m_monerod;
     bool m_has_daemon = true;
     bool m_app_exit = false;
     bool m_noSync = false;

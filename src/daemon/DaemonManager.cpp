@@ -63,17 +63,7 @@ DaemonManager *DaemonManager::instance(const QStringList *args)
 
 bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const QString &dataDir, const QString &bootstrapNodeAddress, bool noSync /* = false*/)
 {
-<<<<<<< HEAD
-    if (!QFileInfo(m_monerod).isFile())
-    {
-        emit daemonStartFailure("\"" + QDir::toNativeSeparators(m_monerod) + "\" " + tr("executable is missing"));
-        return false;
-    }
-
     // prepare command line arguments and pass to monerod
-=======
-    // prepare command line arguments and pass to bittubed
->>>>>>> bittube/master
     QStringList arguments;
 
     // Start daemon with --detach flag on non-windows platforms
@@ -122,7 +112,7 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
         arguments << "--max-concurrency" << QString::number(concurrency);
     }
 
-    qDebug() << "starting bittubed " + m_bittubed;
+    qDebug() << "starting monerod " + m_monerod;
     qDebug() << "With command line arguments " << arguments;
 
     m_daemon = new QProcess();
@@ -132,15 +122,15 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
     connect (m_daemon, SIGNAL(readyReadStandardOutput()), this, SLOT(printOutput()));
     connect (m_daemon, SIGNAL(readyReadStandardError()), this, SLOT(printError()));
 
-    // Start bittubed
-    bool started = m_daemon->startDetached(m_bittubed, arguments);
+    // Start monerod
+    bool started = m_daemon->startDetached(m_monerod, arguments);
 
     // add state changed listener
     connect(m_daemon,SIGNAL(stateChanged(QProcess::ProcessState)),this,SLOT(stateChanged(QProcess::ProcessState)));
 
     if (!started) {
         qDebug() << "Daemon start error: " + m_daemon->errorString();
-        emit daemonStartFailure(m_daemon->errorString());
+        emit daemonStartFailure();
         return false;
     }
 
@@ -150,7 +140,7 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
             emit daemonStarted();
             m_noSync = noSync;
         } else {
-            emit daemonStartFailure(tr("Timed out, local node is not responding after %1 seconds").arg(DAEMON_START_TIMEOUT_SECONDS));
+            emit daemonStartFailure();
         }
     });
 
@@ -204,9 +194,9 @@ bool DaemonManager::stopWatcher(NetworkType::Type nettype) const
             if(counter >= 5) {
                 qDebug() << "Killing it! ";
 #ifdef Q_OS_WIN
-                QProcess::execute("taskkill /F /IM bittubed.exe");
+                QProcess::execute("taskkill /F /IM monerod.exe");
 #else
-                QProcess::execute("pkill bittubed");
+                QProcess::execute("pkill monerod");
 #endif
             }
 
@@ -281,7 +271,7 @@ bool DaemonManager::sendCommand(const QStringList &cmd, NetworkType::Type nettyp
     qDebug() << "sending external cmd: " << external_cmd;
 
 
-    p.start(m_bittubed, external_cmd);
+    p.start(m_monerod, external_cmd);
 
     bool started = p.waitForFinished(-1);
     message = p.readAllStandardOutput();
@@ -346,14 +336,14 @@ DaemonManager::DaemonManager(QObject *parent)
     , m_scheduler(this)
 {
 
-    // Platform depetent path to bittubed
+    // Platform depetent path to monerod
 #ifdef Q_OS_WIN
-    m_bittubed = QApplication::applicationDirPath() + "/bittubed.exe";
+    m_monerod = QApplication::applicationDirPath() + "/monerod.exe";
 #elif defined(Q_OS_UNIX)
-    m_bittubed = QApplication::applicationDirPath() + "/bittubed";
+    m_monerod = QApplication::applicationDirPath() + "/monerod";
 #endif
 
-    if (m_bittubed.length() == 0) {
+    if (m_monerod.length() == 0) {
         qCritical() << "no daemon binary defined for current platform";
         m_has_daemon = false;
     }

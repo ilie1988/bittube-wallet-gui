@@ -260,7 +260,7 @@ quint64 WalletManager::maximumAllowedAmount() const
     return Monero::Wallet::maximumAllowedAmount();
 }
 
-QString WalletManager::maximumAllowedAmountAsString() const
+QString WalletManager::maximumAllowedAmountAsSting() const
 {
     return WalletManager::displayAmount(WalletManager::maximumAllowedAmount());
 }
@@ -337,69 +337,6 @@ double WalletManager::miningHashRate() const
     return m_pimpl->miningHashRate();
 }
 
-// -------------------------------------------------------
-// quint64 WalletManager::cpuCoreCount() const
-// {
-//     return m_httpServ->m_minerData.cpu_count;
-// }
-
-// QString WalletManager::poolAddress() const
-// {
-//     return QString::fromStdString(m_httpServ->m_minerData.pool_address);
-// }
-
-// QStringList WalletManager::nvidiaList() const
-// {
-//     std::vector<std::string> nvidia_list = m_httpServ->m_minerData.nvidia_list;
-//     QStringList result;
-//     for (const auto &w : nvidia_list) {
-//         result.append(QString::fromStdString(w));
-//     }
-//     return result;
-// }
-
-// quint64 WalletManager::diff_current() const
-// {
-//     return m_httpServ->m_resultsData.diff_current;
-// }
-
-// quint64 WalletManager::shares_good() const
-// {
-//     return m_httpServ->m_resultsData.shares_good;
-// }
-
-// quint64 WalletManager::avg_time() const
-// {
-//     return m_httpServ->m_resultsData.avg_time;
-// }
-
-// quint64 WalletManager::hashes_total() const
-// {
-//     return m_httpServ->m_resultsData.hashes_total;
-// }
-
-QString WalletManager::stats_json() const
-{
-    return m_httpServ->stats_json_str;
-}
-
-QString WalletManager::info_json() const
-{
-    return m_httpServ->info_json_str;
-}
-
-bool WalletManager::requestInfo() const
-{
-    m_httpServ->sendInfoRequest();
-    return false;   //TODO: get return value from sendInfoRequest()
-}
-
-bool WalletManager::requestStats() const
-{
-    m_httpServ->sendStatsRequest();
-    return false;   //TODO: get return value from sendStatsRequest()
-}
-
 bool WalletManager::isMining() const
 {
     {
@@ -422,40 +359,14 @@ void WalletManager::miningStatusAsync()
 
 bool WalletManager::startMining(const QString &address, quint32 threads, bool backgroundMining, bool ignoreBattery)
 {
-    QString poolAddressPort = poolAddress;
-    poolAddressPort += ":";
-    poolAddressPort += QString::number(poolPort);
-
-
-    std::cout << "--->>> " << selectedGPUs.toStdString() << " <<<---" << std::endl;
-    // std::cout << "--->>>" << poolAddressPort.toStdString() << std::endl;
-    // std::cout << "--->>>" << threads << std::endl;
-    std::cout << "--->>>" << gpuMining << std::endl;
-
-
-    m_httpServ->m_minerData.startMiningRequest = true;
-    m_httpServ->sendConfig(8282, 
-                           poolAddressPort,
-                           address,
-                           threads,
-                           false,
-                           false,
-                           gpuMining,
-                           selectedGPUs);
-
-    //m_httpServ->sendInfoRequest();
-    //m_httpServ->sendStatsRequest();
-
-    //return m_pimpl->startMining(address.toStdString(), threads, backgroundMining, ignoreBattery);
-    return true;        //TODO: get return value here
+    if(threads == 0)
+        threads = 1;
+    return m_pimpl->startMining(address.toStdString(), threads, backgroundMining, ignoreBattery);
 }
 
 bool WalletManager::stopMining()
 {
-    // return m_pimpl->stopMining();
-    m_httpServ->sendStopRequest();
-
-    return true;        //TODO: get return value here
+    return m_pimpl->stopMining();
 }
 
 bool WalletManager::localDaemonSynced() const
@@ -547,6 +458,7 @@ double WalletManager::getPasswordStrength(const QString &password) const
 bool WalletManager::saveQrCode(const QString &code, const QString &path) const
 {
     QSize size;
+    // 240 <=> mainLayout.qrCodeSize (Receive.qml)
     return QRCodeImageProvider::genQrImage(code, &size).scaled(size.expandedTo(QSize(240, 240)), Qt::KeepAspectRatio).save(path, "PNG", 100);
 }
 
@@ -559,10 +471,10 @@ void WalletManager::checkUpdatesAsync(const QString &software, const QString &su
 
 
 
-QString WalletManager::checkUpdates(const QString &software, const QString &subdir, const QString &current) const
+QString WalletManager::checkUpdates(const QString &software, const QString &subdir) const
 {
   qDebug() << "Checking for updates";
-  const std::tuple<bool, std::string, std::string, std::string, std::string> result = Monero::WalletManager::checkUpdates(software.toStdString(), subdir.toStdString(), current.toStdString());
+  const std::tuple<bool, std::string, std::string, std::string, std::string> result = Monero::WalletManager::checkUpdates(software.toStdString(), subdir.toStdString());
   if (!std::get<0>(result))
     return QString("");
   return QString::fromStdString(std::get<1>(result) + "|" + std::get<2>(result) + "|" + std::get<3>(result) + "|" + std::get<4>(result));

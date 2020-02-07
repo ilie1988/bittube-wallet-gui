@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018, The BitTube Project
+// Copyright (c) 2014-2018, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -39,8 +39,8 @@ import "../../components" as MoneroComponents
 
 Rectangle {
     color: "transparent"
+    height: 1400
     Layout.fillWidth: true
-    property alias infoHeight: infoLayout.height
     property string walletModeString: {
         if(appWindow.walletMode === 0){
           return qsTr("Simple mode") + translationManager.emptyString;
@@ -97,13 +97,13 @@ Rectangle {
             MoneroComponents.TextBlock {
                 id: guiMoneroVersion
                 font.pixelSize: 14
-                text: qsTr("Embedded BitTube version: ") + translationManager.emptyString
+                text: qsTr("Embedded Monero version: ") + translationManager.emptyString
             }
 
             MoneroComponents.TextBlock {
                 font.pixelSize: 14
                 color: MoneroComponents.Style.dimmedFontColor
-                text: Version.GUI_BITTUBE_VERSION + translationManager.emptyString
+                text: Version.GUI_MONERO_VERSION + translationManager.emptyString
             }
 
             Rectangle {
@@ -132,21 +132,14 @@ Rectangle {
 
             MoneroComponents.TextBlock {
                 Layout.fillWidth: true
+                Layout.maximumWidth: 360
                 color: MoneroComponents.Style.dimmedFontColor
                 font.pixelSize: 14
-                property string walletPath: (isIOS ?  moneroAccountsDir : "") + appWindow.walletPath()
-                text: "\
-                    <style type='text/css'>\
-                        a {cursor:pointer;text-decoration: none; color: #FF6C3C}\
-                    </style>\
-                    <a href='#'>%1</a>".arg(walletPath)
-                textFormat: Text.RichText
-                onLinkActivated: oshelper.openContainingFolder(walletPath)
-
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton
-                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+                text: {
+                    var wallet_path = walletPath();
+                    if(isIOS)
+                        wallet_path = moneroAccountsDir + wallet_path;
+                    return wallet_path;
                 }
             }
 
@@ -185,6 +178,7 @@ Rectangle {
                 text: (currentWallet ? currentWallet.walletCreationHeight : "") + style + qsTr(" <a href='#'> (Click to change)</a>") + translationManager.emptyString
                 onLinkActivated: {
                     inputDialog.labelText = qsTr("Set a new restore height.\nYou can enter a block height or a date (YYYY-MM-DD):") + translationManager.emptyString;
+                    inputDialog.inputText = currentWallet ? currentWallet.walletCreationHeight : "0";
                     inputDialog.onAcceptedCallback = function() {
                         var _restoreHeight;
                         if (inputDialog.inputText) {
@@ -230,7 +224,7 @@ Rectangle {
                         appWindow.showStatusMessage(qsTr("Invalid restore height specified. Must be a number or a date formatted YYYY-MM-DD"),3);
                     }
                     inputDialog.onRejectedCallback = null;
-                    inputDialog.open(currentWallet ? currentWallet.walletCreationHeight : "0")
+                    inputDialog.open()
                 }
 
                 MouseArea {
@@ -268,19 +262,7 @@ Rectangle {
                 Layout.fillWidth: true
                 color: MoneroComponents.Style.dimmedFontColor
                 font.pixelSize: 14
-                text: "\
-                    <style type='text/css'>\
-                        a {cursor:pointer;text-decoration: none; color: #FF6C3C}\
-                    </style>\
-                    <a href='#'>%1</a>".arg(walletLogPath)
-                textFormat: Text.RichText
-                onLinkActivated: oshelper.openContainingFolder(walletLogPath)
-
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton
-                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
-                }
+                text: walletLogPath
             }
 
             Rectangle {
@@ -388,7 +370,7 @@ Rectangle {
             onClicked: {
                 var data = "";
                 data += "GUI version: " + Version.GUI_VERSION + " (Qt " + qtRuntimeVersion + ")";
-                data += "\nEmbedded BitTube version: " + Version.GUI_BITTUBE_VERSION;
+                data += "\nEmbedded Monero version: " + Version.GUI_MONERO_VERSION;
                 data += "\nWallet path: ";
 
                 var wallet_path = walletPath();

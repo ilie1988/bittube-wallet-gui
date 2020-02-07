@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2019, The BitTube Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -36,8 +36,8 @@ import "../../components/effects" as MoneroEffects
 
 Rectangle{
     color: "transparent"
+    height: 1400
     Layout.fillWidth: true
-    property alias nodeHeight: root.height
 
     /* main layout */
     ColumnLayout {
@@ -50,6 +50,10 @@ Rectangle{
         anchors.right: parent.right
 
         spacing: 0
+        property int labelWidth: 120
+        property int editWidth: 400
+        property int lineEditFontSize: 14
+        property int buttonWidth: 110
 
         Rectangle {
             Layout.fillWidth: true
@@ -227,7 +231,7 @@ Rectangle{
                     wrapMode: Text.WordWrap;
                     leftPadding: 0
                     topPadding: 0
-                    text: qsTr("Uses a third-party server to connect to the BitTube network. Less secure, but easier on your computer.") + translationManager.emptyString
+                    text: qsTr("Uses a third-party server to connect to the Monero network. Less secure, but easier on your computer.") + translationManager.emptyString
                     width: parent.width - (remoteNodeIcon.width + remoteNodeIcon.anchors.leftMargin + anchors.leftMargin)
 
                     // @TODO: Legacy. Remove after Qt 5.8.
@@ -271,7 +275,7 @@ Rectangle{
             MoneroComponents.WarningBox {
                 Layout.topMargin: 26
                 Layout.bottomMargin: 6
-                text: qsTr("To find a remote node, type 'BitTube remote node' into your favorite search engine. Please ensure the node is run by a trusted third-party.") + translationManager.emptyString
+                text: qsTr("To find a remote node, type 'Monero remote node' into your favorite search engine. Please ensure the node is run by a trusted third-party.") + translationManager.emptyString
             }
 
             MoneroComponents.RemoteNodeEdit {

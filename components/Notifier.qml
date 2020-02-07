@@ -1,5 +1,4 @@
 // Copyright (c) 2017-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -32,8 +31,6 @@ import QtQuick.Controls 1.4
 import moneroComponents.Wallet 1.0
 import "." as MoneroComponents
 
-import "../components" as MoneroComponents
-
 Item {
     id: item
     property string message: ""
@@ -41,16 +38,11 @@ Item {
     height: 180
     width: 320
     property int margin: 15
-    // x: parent.width - width - margin
-    // y: parent.height - height * scale.yScale - margin * scale.yScale
-    width: 600
-    height: 200
-    opacity: 0.7
-    x: parent.width / 2 - 300
-    y: parent.height / 2 - 100
-    
+    x: parent.width - width - margin
+    y: parent.height - height * scale.yScale - margin * scale.yScale
+
     Rectangle {
-        color: MoneroComponents.Style.notifierBackgroundColor
+        color: "#FF6C3C"
         border.color: "black"
         anchors.fill: parent
 
@@ -59,13 +51,11 @@ Item {
             readOnly: true
             backgroundVisible: false
             textFormat: TextEdit.AutoText
-            horizontalAlignment: TextInput.AlignHCenter
-            verticalAlignment: TextInput.AlignVCenter
             anchors.fill: parent
             font.family: MoneroComponents.Style.fontRegular.name
             font.pixelSize: 12
             textMargin: 20
-            textColor: MoneroComponents.Style.notifierFontColor
+            textColor: "white"
             text: item.message
             wrapMode: Text.WrapAnywhere
         }
@@ -75,9 +65,9 @@ Item {
         id: scale
         yScale: item.active ? 1 : 0
 
-        // Behavior on yScale {
-        //     NumberAnimation { duration: 500; easing.type: Easing.InOutCubic }
-        // }
+        Behavior on yScale {
+            NumberAnimation { duration: 500; easing.type: Easing.InOutCubic }
+        }
     }
 
     Timer {

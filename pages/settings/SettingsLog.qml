@@ -37,8 +37,8 @@ import "../../components" as MoneroComponents
 Rectangle {
     property alias consoleArea: consoleArea
     color: "transparent"
+    height: 1400
     Layout.fillWidth: true
-    property alias logHeight: settingsLog.height
 
     ColumnLayout {
         id: settingsLog
@@ -150,7 +150,6 @@ Rectangle {
             Flickable {
                 id: flickable
                 anchors.fill: parent
-                boundsBehavior: isMac ? Flickable.DragAndOvershootBounds : Flickable.StopAtBounds
 
                 TextArea.flickable: TextArea {
                     id : consoleArea
@@ -204,9 +203,7 @@ Rectangle {
                     }
                 }
 
-                ScrollBar.vertical: ScrollBar {
-                    onActiveChanged: if (!active && !isMac) active = true
-                }
+                ScrollBar.vertical: ScrollBar {}
             }
         }
 

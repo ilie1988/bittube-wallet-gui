@@ -1,5 +1,4 @@
-// Copyright (c) 2014-2018, The BitTube Project
-// Copyright (c) 2018, The BitTube Project
+// Copyright (c) 2014-2019, The Monero Project
 // 
 // All rights reserved.
 // 
@@ -98,7 +97,7 @@ Rectangle {
                 wrapMode: Text.WordWrap;
                 leftPadding: 0
                 topPadding: 0
-                text: qsTr("This makes it easier to send or receive BitTube and reduces errors when typing in addresses manually.") + translationManager.emptyString
+                text: qsTr("This makes it easier to send or receive Monero and reduces errors when typing in addresses manually.") + translationManager.emptyString
                 width: parent.width
 
                 // @TODO: Legacy. Remove after Qt 5.8.

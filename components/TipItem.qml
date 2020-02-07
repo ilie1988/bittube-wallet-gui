@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -50,7 +49,7 @@ Window {
         id: rect
         width: content.width + 12
         height: content.height + 17
-        color: "#808080"
+        color: "#FF6C3C"
         //radius: 3
 
         Image {

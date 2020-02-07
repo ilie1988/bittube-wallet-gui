@@ -32,6 +32,12 @@ private:
     QFutureWatcher<T> *newWatcher()
     {
         QFutureWatcher<T> *watcher = new QFutureWatcher<T>();
+        QThread *schedulerThread = this->thread();
+        if (watcher->thread() != schedulerThread)
+        {
+            watcher->moveToThread(schedulerThread);
+        }
+        watcher->setParent(this);
 
         return watcher;
     }
@@ -44,10 +50,10 @@ private:
             try
             {
                 auto *watcher = newWatcher<T>();
+                watcher->setFuture(makeFuture(watcher));
                 connect(watcher, &QFutureWatcher<T>::finished, [this, watcher] {
                     watcher->deleteLater();
                 });
-                watcher->setFuture(makeFuture(watcher));
                 return qMakePair(true, watcher->future());
             }
             catch (const std::exception &exception)

@@ -1,6 +1,5 @@
-// Copyright (c) 2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
-// 
+// Copyright (c) 2014-2019, The Monero Project
+//
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification, are
@@ -61,23 +60,18 @@ QVariant SubaddressModel::data(const QModelIndex &index, int role) const
     if (!index.isValid() || index.row() < 0 || (unsigned)index.row() >= m_subaddress->count())
         return {};
 
-    QVariant result;
+    Monero::SubaddressRow * sr = m_subaddress->getRow(index.row());
+    if (!sr)
+        return {};
 
-    bool found = m_subaddress->getRow(index.row(), [&index, &result, &role](const Monero::SubaddressRow &subaddress) {
-        switch (role) {
-        case SubaddressAddressRole:
-            result = QString::fromStdString(subaddress.getAddress());
-            break;
-        case SubaddressLabelRole:
-            result = index.row() == 0 ? tr("Primary address") : QString::fromStdString(subaddress.getLabel());
-            break;
-        default:
-            qCritical() << "Unimplemented role" << role;
-        }
-    });
-    if (!found)
-    {
-        qCritical("%s: internal error: invalid index %d", __FUNCTION__, index.row());
+    QVariant result = "";
+    switch (role) {
+    case SubaddressAddressRole:
+        result = QString::fromStdString(sr->getAddress());
+        break;
+    case SubaddressLabelRole:
+        result = index.row() == 0 ? tr("Primary address") : QString::fromStdString(sr->getLabel());
+        break;
     }
 
     return result;

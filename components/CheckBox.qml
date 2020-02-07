@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -109,7 +108,7 @@ Item {
             font.pixelSize: checkBox.fontSize
             color: MoneroComponents.Style.defaultFontColor
             textFormat: Text.RichText
-            wrapMode: Text.NoWrap
+            wrapMode: Text.Wrap
         }
     }
 

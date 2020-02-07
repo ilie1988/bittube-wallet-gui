@@ -34,81 +34,85 @@
 
 TransactionInfo::Direction TransactionInfo::direction() const
 {
-    return m_direction;
+    return static_cast<Direction>(m_pimpl->direction());
 }
 
 bool TransactionInfo::isPending() const
 {
-    return m_pending;
+    return m_pimpl->isPending();
 }
 
 bool TransactionInfo::isFailed() const
 {
-    return m_failed;
+    return m_pimpl->isFailed();
 }
 
 
 double TransactionInfo::amount() const
 {
     // there's no unsigned uint64 for JS, so better use double
-    return displayAmount().toDouble();
+    return WalletManager::instance()->displayAmount(m_pimpl->amount()).toDouble();
 }
 
 quint64 TransactionInfo::atomicAmount() const
 {
-    return m_amount;
+    return m_pimpl->amount();
 }
 
 QString TransactionInfo::displayAmount() const
 {
-    return WalletManager::instance()->displayAmount(m_amount);
+    return WalletManager::instance()->displayAmount(m_pimpl->amount());
 }
 
 QString TransactionInfo::fee() const
 {
-    if(m_fee == 0)
+    if(m_pimpl->fee() == 0)
         return "";
-    return WalletManager::instance()->displayAmount(m_fee);
+    return WalletManager::instance()->displayAmount(m_pimpl->fee());
 }
 
 quint64 TransactionInfo::blockHeight() const
 {
-    return m_blockHeight;
+    return m_pimpl->blockHeight();
 }
 
 QSet<quint32> TransactionInfo::subaddrIndex() const
 {
-    return m_subaddrIndex;
+    QSet<quint32> result;
+    for (uint32_t i : m_pimpl->subaddrIndex())
+        result.insert(i);
+    return result;
 }
 
 quint32 TransactionInfo::subaddrAccount() const
 {
-    return m_subaddrAccount;
+    return m_pimpl->subaddrAccount();
 }
 
 QString TransactionInfo::label() const
 {
-    return m_label;
+    return QString::fromStdString(m_pimpl->label());
 }
 
 quint64 TransactionInfo::confirmations() const
 {
-    return m_confirmations;
+    return m_pimpl->confirmations();
 }
 
 quint64 TransactionInfo::unlockTime() const
 {
-    return m_unlockTime;
+    return m_pimpl->unlockTime();
 }
 
 QString TransactionInfo::hash() const
 {
-    return m_hash;
+    return QString::fromStdString(m_pimpl->hash());
 }
 
 QDateTime TransactionInfo::timestamp() const
 {
-    return m_timestamp;
+    QDateTime result = QDateTime::fromTime_t(m_pimpl->timestamp());
+    return result;
 }
 
 QString TransactionInfo::date() const
@@ -123,13 +127,13 @@ QString TransactionInfo::time() const
 
 QString TransactionInfo::paymentId() const
 {
-    return m_paymentId;
+    return QString::fromStdString(m_pimpl->paymentId());
 }
 
 QString TransactionInfo::destinations_formatted() const
 {
     QString destinations;
-    for (auto const& t: m_transfers) {
+    for (auto const& t: transfers()) {
         if (!destinations.isEmpty())
           destinations += "<br> ";
         destinations +=  WalletManager::instance()->displayAmount(t->amount()) + ": " + t->address();
@@ -137,29 +141,22 @@ QString TransactionInfo::destinations_formatted() const
     return destinations;
 }
 
-TransactionInfo::TransactionInfo(const Monero::TransactionInfo *pimpl, QObject *parent)
-    : QObject(parent)
-    , m_amount(pimpl->amount())
-    , m_blockHeight(pimpl->blockHeight())
-    , m_confirmations(pimpl->confirmations())
-    , m_direction(static_cast<Direction>(pimpl->direction()))
-    , m_failed(pimpl->isFailed())
-    , m_fee(pimpl->fee())
-    , m_hash(QString::fromStdString(pimpl->hash()))
-    , m_label(QString::fromStdString(pimpl->label()))
-    , m_paymentId(QString::fromStdString(pimpl->paymentId()))
-    , m_pending(pimpl->isPending())
-    , m_subaddrAccount(pimpl->subaddrAccount())
-    , m_timestamp(QDateTime::fromTime_t(pimpl->timestamp()))
-    , m_unlockTime(pimpl->unlockTime())
+QList<Transfer*> TransactionInfo::transfers() const
 {
-    for (auto const &t: pimpl->transfers())
-    {
-        Transfer *transfer = new Transfer(t.amount, QString::fromStdString(t.address), this);
+    if (!m_transfers.isEmpty()) {
+        return m_transfers;
+    }
+
+    for(auto const& t: m_pimpl->transfers()) {
+        TransactionInfo * parent = const_cast<TransactionInfo*>(this);
+        Transfer * transfer = new Transfer(t.amount, QString::fromStdString(t.address), parent);
         m_transfers.append(transfer);
     }
-    for (uint32_t i : pimpl->subaddrIndex())
-    {
-        m_subaddrIndex.insert(i);
-    }
+    return m_transfers;
+}
+
+TransactionInfo::TransactionInfo(Monero::TransactionInfo *pimpl, QObject *parent)
+    : QObject(parent), m_pimpl(pimpl)
+{
+
 }
