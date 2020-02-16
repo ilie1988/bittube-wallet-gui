@@ -29,10 +29,10 @@
 import QtQuick 2.9
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
-import bittubeComponents.Clipboard 1.0
-import bittubeComponents.PendingTransaction 1.0
-import bittubeComponents.Wallet 1.0
-import bittubeComponents.NetworkType 1.0
+import moneroComponents.Clipboard 1.0
+import moneroComponents.PendingTransaction 1.0
+import moneroComponents.Wallet 1.0
+import moneroComponents.NetworkType 1.0
 import FontAwesome 1.0
 import "../components"
 import "../components" as MoneroComponents
@@ -158,7 +158,7 @@ Rectangle {
           visible: leftPanel.minutesToUnlock !== ""
 
           MoneroComponents.WarningBox {
-              text: qsTr("Spendable funds: %1 TUBE. Please wait ~%2 minutes for your whole balance to become spendable.").arg(leftPanel.balanceUnlockedString).arg(leftPanel.minutesToUnlock)
+              text: qsTr("Spendable funds: %1 XMR. Please wait ~%2 minutes for your whole balance to become spendable.").arg(leftPanel.balanceUnlockedString).arg(leftPanel.minutesToUnlock)
           }
       }
 
@@ -288,7 +288,6 @@ Rectangle {
                     amountLine.text = parsed.amount;
                     setDescription(parsed.tx_description);
                   }
-                  warningLongPidTransfer = !persistentSettings.showPid && isLongPidService(text)
               }
               inlineButton.text: FontAwesome.qrcode
               inlineButton.fontPixelSize: 22
@@ -385,8 +384,7 @@ Rectangle {
           }
 
           ColumnLayout {
-              visible: appWindow.persistentSettings.showPid || paymentIdCheckbox.checked
-              // @TODO: remove after pid removal hardfork
+              visible: paymentIdCheckbox.checked
               CheckBox {
                   id: paymentIdCheckbox
                   border: false
@@ -409,6 +407,7 @@ Rectangle {
                   id: paymentIdLine
                   fontBold: true
                   placeholderText: qsTr("64 hexadecimal characters") + translationManager.emptyString
+                  readOnly: true
                   Layout.fillWidth: true
                   wrapMode: Text.WrapAnywhere
                   addressValidation: false
@@ -420,8 +419,10 @@ Rectangle {
 
       MoneroComponents.WarningBox {
           id: paymentIdWarningBox
-          text: qsTr("You can enable transfers with payment ID on the settings page.") + translationManager.emptyString;
-          visible: !persistentSettings.showPid && (warningLongPidTransfer || warningLongPidDescription)
+          text: qsTr("Long payment IDs are obsolete. \
+          Long payment IDs were not encrypted on the blockchain and would harm your privacy. \
+          If the party you're sending to still requires a long payment ID, please notify them.") + translationManager.emptyString;
+          visible: paymentIdCheckbox.checked || warningLongPidDescription
       }
 
       MoneroComponents.WarningBox {
@@ -563,7 +564,7 @@ Rectangle {
     FileDialog {
         id: signTxDialog
         title: qsTr("Please choose a file") + translationManager.emptyString
-        folder: "file://" +bittubeAccountsDir
+        folder: "file://" +moneroAccountsDir
         nameFilters: [ "Unsigned transfers (*)"]
 
         onAccepted: {
@@ -624,7 +625,7 @@ Rectangle {
     FileDialog {
         id: submitTxDialog
         title: qsTr("Please choose a file") + translationManager.emptyString
-        folder: "file://" +bittubeAccountsDir
+        folder: "file://" +moneroAccountsDir
         nameFilters: [ "signed transfers (*)"]
 
         onAccepted: {
@@ -750,35 +751,5 @@ Rectangle {
 
         if(typeof amount !== 'undefined')
             amountLine.text = amount;
-    }
-
-    function updateSendButton(){
-        // reset message
-        root.sendButtonWarning = "";
-
-        // Currently opened wallet is not view-only
-        if(appWindow.viewOnly){
-            root.sendButtonWarning = qsTr("Wallet is view-only and sends are not possible.") + translationManager.emptyString;
-            return false;
-        }
-
-        // There are sufficient unlocked funds available
-        if(parseFloat(amountLine.text) > parseFloat(middlePanel.unlockedBalanceText)){
-            root.sendButtonWarning = qsTr("Amount is more than unlocked balance.") + translationManager.emptyString;
-            return false;
-        }
-
-        // There is no warning box displayed
-        if(root.warningContent !== ""){
-            return false;
-        }
-
-        // The transactional information is correct
-        if(!pageRoot.checkInformation(amountLine.text, addressLine.text, paymentIdLine.text, appWindow.persistentSettings.nettype)){
-            if(amountLine.text && addressLine.text)
-                root.sendButtonWarning = qsTr("Transaction information is incorrect.") + translationManager.emptyString;
-            return false;
-        }
-        return true;
     }
 }
