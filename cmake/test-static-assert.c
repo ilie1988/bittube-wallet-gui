@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -26,9 +27,15 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <assert.h>
+import QtQuick 2.2
+import QtQuick.Controls 1.2
+import QtQuick.Controls.Styles 1.2
+import QtGraphicalEffects 1.0
 
-static_assert(1, "FAIL");
-int main(int argc, char *argv[]) {
-	return 0;
+import "components"
+
+Rectangle {
+    id: root
+    width: 330
+    color: "#FFFFFF"
 }

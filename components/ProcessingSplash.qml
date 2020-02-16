@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -26,23 +27,21 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.9
+import QtQuick 2.0
 import QtQuick.Window 2.1
 import QtQuick.Controls 1.4
 import QtQuick.Layouts 1.1
 
-import "../components" as MoneroComponents
-
 Rectangle {
     id: root
-    color: MoneroComponents.Style.blackTheme ? "white" : "transparent"
+    color: "white"
     visible: false
-    z: 11
+    z:11
     property alias messageText: messageTitle.text
     property alias heightProgressText : heightProgress.text
 
-    width: 200
-    height: 100
+    width: 200 * scaleRatio
+    height: 100 * scaleRatio
     opacity: 0.7
 
     function show() {
@@ -60,40 +59,33 @@ Rectangle {
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
 
-        anchors.leftMargin: 30
-        anchors.rightMargin: 30
-
-        spacing: 12
+        anchors.leftMargin: 30 * scaleRatio
+        anchors.rightMargin: 30 * scaleRatio
 
         BusyIndicator {
             running: parent.visible
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
         }
 
-        MoneroComponents.TextPlain {
+        Text {
             id: messageTitle
             text: "Please wait..."
             font {
-                pixelSize: 22
+                pixelSize: 22 * scaleRatio
             }
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             Layout.fillWidth: true
-            themeTransition: false
-            color: "black"
         }
 
-
-        MoneroComponents.TextPlain {
+        Text {
             id: heightProgress
             font {
-                pixelSize: 18
+                pixelSize: 18 * scaleRatio
             }
             horizontalAlignment: Text.AlignHCenter
             Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
             Layout.fillWidth: true
-            themeTransition: false
-            color: "black"
         }
     }
 }

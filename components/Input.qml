@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -43,7 +44,8 @@ TextField {
     selectedTextColor: MoneroComponents.Style.textSelectedColor
 
     background: Rectangle {
-        color: "transparent"
+        color: MoneroComponents.Style.inputBackgroundColor
+        radius: 4
     }
 
     MoneroComponents.ContextMenu {

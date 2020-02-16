@@ -1,4 +1,4 @@
-import QtQuick 2.9
+import QtQuick 2.7
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0
 import QtGraphicalEffects 1.0
@@ -24,8 +24,8 @@ Item {
     id: root
     anchors.margins: 0
 
-    property int    minWidth: 900
-    property int    qrCodeSize: 220
+    property int    minWidth: 900 * scaleRatio
+    property int    qrCodeSize: 220 * scaleRatio
     property bool   enableTracking: false
     property string trackingError: ""  // setting this will show a message @ tracking table
     property alias  merchantHeight: mainLayout.height
@@ -33,6 +33,9 @@ Item {
     property var    hiddenAmounts: []
 
     function onPageCompleted() {
+        appWindow.titlebarToggleOrange();
+        appWindow.hideMenu();
+
         // prepare tracking
         trackingCheckbox.checked = root.enableTracking
         root.update();
@@ -50,18 +53,22 @@ Item {
     }
 
     function onPageClosed() {
+        appWindow.titlebarToggleOrange();
+
         // reset component objects
         timer.running = false
         root.enableTracking = false
         trackingModel.clear()
+
+        appWindow.showMenu();
     }
 
     Image {
         anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
-        height: 300
-        source: "qrc:///images/merchant/bg.png"
+        height: 300 * scaleRatio
+        source: "../../images/merchant/bg.png"
         smooth: false
     }
 
@@ -71,8 +78,8 @@ Item {
         spacing: 0
 
         // emulates max-width + center for container
-        property int maxWidth: 1200
-        property int defaultMargin: 50
+        property int maxWidth: 1200 * scaleRatio
+        property int defaultMargin: 50 * scaleRatio
         property int horizontalMargin: {
             if(appWindow.width >= maxWidth){
                 return ((appWindow.width - maxWidth) / 2) + defaultMargin;
@@ -89,15 +96,16 @@ Item {
         anchors.right: parent.right
 
         Item {
-            Layout.preferredHeight: 220
-            Layout.fillWidth: true
+            height: 220 * scaleRatio
+            anchors.left: parent.left
+            anchors.right: parent.right
 
             Rectangle {
                 id: tracker
                 anchors.left: parent.left
                 anchors.top: parent.top
-                height: 220
-                width: (parent.width - qrImg.width) - 50
+                height: 220 * scaleRatio
+                width: (parent.width - qrImg.width) - 50 * scaleRatio
                 radius: 5
 
                 ColumnLayout {
@@ -108,25 +116,24 @@ Item {
 
                     RowLayout {
                         spacing: 0
-                        height: 56
+                        height: 56 * scaleRatio
 
                         RowLayout {
                             Layout.alignment: Qt.AlignLeft
-                            Layout.preferredWidth: 260
+                            Layout.preferredWidth: 260 * scaleRatio
                             Layout.preferredHeight: parent.height
                             Layout.fillHeight: true
-                            spacing: 8
+                            spacing: 8 * scaleRatio
 
                             Item {
-                                Layout.preferredWidth: 10
+                                Layout.preferredWidth: 10 * scaleRatio
                             }
 
-                            MoneroComponents.TextPlain {
-                                font.pixelSize: 16
+                            Text {
+                                font.pixelSize: 16 * scaleRatio
                                 font.bold: true
                                 color: "#767676"
-                                text: qsTr("Sales") + translationManager.emptyString
-                                themeTransition: false
+                                text: qsTr("Sales")
                             }
 
                             Item {
@@ -141,13 +148,13 @@ Item {
 
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 1
+                        Layout.preferredHeight: 1 * scaleRatio
                         color: "#d9d9d9"
                     }
 
                     MerchantTrackingList {
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 400
+                        Layout.preferredHeight: 400 * scaleRatio
                         model: trackingModel
                         message: {
                             if(!root.enableTracking){
@@ -158,7 +165,7 @@ Item {
                                         "<p>It's up to you whether to accept unconfirmed transactions or not. It is likely they'll be " +
                                         "confirmed in short order, but there is still a possibility they might not, so for larger " +
                                         "values you may want to wait for one or more confirmation(s).</p>"
-                                    ) + translationManager.emptyString;
+                                    );
                             } else if(root.trackingError !== ""){
                                 return root.trackingError;
                             } else if(trackingModel.count < 1){
@@ -207,7 +214,7 @@ Item {
                 Image {
                     id: qrCode
                     anchors.fill: parent
-                    anchors.margins: 1
+                    anchors.margins: 1 * scaleRatio
 
                     smooth: false
                     fillMode: Image.PreserveAspectFit
@@ -252,22 +259,22 @@ Item {
         }
 
         Item {
-            Layout.preferredHeight: 40
-            Layout.fillWidth: true
+            Layout.preferredHeight: 40 * scaleRatio
+            anchors.left: parent.left
+            anchors.right: parent.right
 
             Item {
-                width: (parent.width - qrImg.width) - (50)
-                height: 32
+                width: (parent.width - qrImg.width) - (50 * scaleRatio)
+                height: 32 * scaleRatio
 
-                MoneroComponents.TextPlain {
+                Text {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
-                    font.pixelSize: 12
+                    font.pixelSize: 12 * scaleRatio
                     font.bold: false
                     color: "white"
-                    text: qsTr("<style type='text/css'>a {text-decoration: none; color: #FF6C3C; font-size: 12px;}</style>Currently selected address: ") + addressLabel + qsTr(" <a href='#'>(Change)</a>") + translationManager.emptyString
+                    text: "<style type='text/css'>a {text-decoration: none; color: Style.highlitedFontColor; font-size: 12px;}</style>Currently selected address: " + addressLabel + " <a href='#'>(Change)</a>"
                     textFormat: Text.RichText
-                    themeTransition: false
 
                     MouseArea {
                         anchors.fill: parent
@@ -281,32 +288,31 @@ Item {
             Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
-                width: 220
-                height: 32
+                width: 220 * scaleRatio
+                height: 32 * scaleRatio
 
-                MoneroComponents.TextPlain {
+                Text {
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
-                    font.pixelSize: 12
+                    font.pixelSize: 12 * scaleRatio
                     font.bold: false
                     color: "white"
-                    text: qsTr("(right-click, save as)") + translationManager.emptyString
-                    themeTransition: false
+                    text: qsTr("(right-click, save as)")
                 }
             }
         }
 
         Item {
-            Layout.preferredHeight: 120
-            Layout.topMargin: 20
+            Layout.preferredHeight: 120 * scaleRatio
+            Layout.topMargin: 20 * scaleRatio
             Layout.fillWidth: true
 
             Rectangle {
                 id: payment_url_container
                 anchors.left: parent.left
                 anchors.top: parent.top
-                implicitHeight: 120
-                width: (parent.width - qrImg.width) - (50)
+                implicitHeight: 120 * scaleRatio
+                width: (parent.width - qrImg.width) - (50 * scaleRatio)
                 radius: 5
 
                 ColumnLayout {
@@ -317,25 +323,24 @@ Item {
 
                     RowLayout {
                         spacing: 0
-                        height: 56
+                        height: 56 * scaleRatio
 
                         RowLayout {
                             Layout.alignment: Qt.AlignLeft
-                            Layout.preferredWidth: 260
+                            Layout.preferredWidth: 260 * scaleRatio
                             Layout.preferredHeight: parent.height
                             Layout.fillHeight: true
                             spacing: 8
 
                             Item {
-                                Layout.preferredWidth: 10
+                                Layout.preferredWidth: 10 * scaleRatio
                             }
 
-                            MoneroComponents.TextPlain {
-                                font.pixelSize: 14
+                            Text {
+                                font.pixelSize: 14 * scaleRatio
                                 font.bold: true
                                 color: "#767676"
-                                text: qsTr("Payment URL") + translationManager.emptyString
-                                themeTransition: false
+                                text: qsTr("Payment URL")
                             }
 
                             Item {
@@ -347,15 +352,15 @@ Item {
 //                        Rectangle {
 //                            // help box
 //                            Layout.alignment: Qt.AlignLeft
-//                            Layout.preferredWidth: 40
+//                            Layout.preferredWidth: 40 * scaleRatio
 //                            Layout.fillHeight: true
 //                            color: "transparent"
 
-//                            MoneroComponents.TextPlain {
+//                            Text {
 //                                anchors.verticalCenter: parent.verticalCenter
 //                                anchors.right: parent.right
-//                                anchors.rightMargin: 20
-//                                font.pixelSize: 16
+//                                anchors.rightMargin: 20 * scaleRatio
+//                                font.pixelSize: 16 * scaleRatio
 //                                font.bold: true
 //                                color: "#767676"
 //                                text:"?"
@@ -385,27 +390,26 @@ Item {
                         color: "#d9d9d9"
                     }
 
-                    MoneroComponents.TextPlain {
+                    Text {
                         property string _color: "#767676"
                         Layout.fillWidth: true
-                        Layout.margins: 20
-                        Layout.topMargin: 10
+                        Layout.margins: 20 * scaleRatio
+                        Layout.topMargin: 10 * scaleRatio
 
                         wrapMode: Text.WrapAnywhere
                         elide: Text.ElideRight
 
-                        font.pixelSize: 12
+                        font.pixelSize: 12 * scaleRatio
                         font.bold: true
                         color: _color
                         text: TxUtils.makeQRCodeString(appWindow.current_address, amountToReceive.text)
-                        themeTransition: false
 
                         MouseArea {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onEntered: {
-                                parent.color = MoneroComponents.Style.orange
+                                parent.color = MoneroComponents.Style.blue
                             }
                             onExited: {
                                 parent.color = parent._color
@@ -435,36 +439,35 @@ Item {
             Item {
                 anchors.right: parent.right
                 anchors.top: parent.top
-                width: 220
-                height: 32
+                width: 220 * scaleRatio
+                height: 32 * scaleRatio
 
                 ColumnLayout {
                     anchors.left: parent.left
                     anchors.right: parent.right
 
-                    MoneroComponents.TextPlain {
-                        font.pixelSize: 14
+                    Text {
+                        font.pixelSize: 14 * scaleRatio
                         font.bold: false
                         color: "white"
-                        text: qsTr("Amount to receive") + " (XMR)" + translationManager.emptyString
-                        themeTransition: false
+                        text: qsTr("Amount to receive") + " (XMR)"
                     }
 
                     Image {
-                        height: 28
-                        width: 220
-                        source: "qrc:///images/merchant/input_box.png"
+                        height: 28 * scaleRatio
+                        width: 220 * scaleRatio
+                        source: "../../images/merchant/input_box.png"
 
-                        MoneroComponents.Input {
+                        TextField {
                             id: amountToReceive
                             topPadding: 0
-                            leftPadding: 10
+                            leftPadding: 10 * scaleRatio
 
                             anchors.left: parent.left
                             anchors.right: parent.right
                             anchors.top: parent.top
-                            anchors.topMargin: 3
-                            font.pixelSize: 16
+                            anchors.topMargin: 3 * scaleRatio
+                            font.pixelSize: 16 * scaleRatio
                             font.bold: true
                             horizontalAlignment: TextInput.AlignLeft
                             verticalAlignment: TextInput.AlignVCenter
@@ -472,7 +475,6 @@ Item {
                             color: "#424242"
                             selectionColor: "#3f3fe3"
                             selectedTextColor: "white"
-                            placeholderText: "0.00"
 
                             background: Rectangle {
                                 color: "transparent"
@@ -489,26 +491,25 @@ Item {
                     }
 
                     Item {
-                        height: 2
-                        width: 220
+                        height: 2 * scaleRatio
+                        width: 220 * scaleRatio
                     }
 
-                    MoneroComponents.TextPlain {
+                    Text {
                         // @TODO: When we have XMR/USD rate avi. in the future.
                         visible: false
-                        font.pixelSize: 14
+                        font.pixelSize: 14 * scaleRatio
                         font.bold: false
                         color: "white"
                         text: qsTr("Amount to receive") + " (USD)"
                         opacity: 0.2
-                        themeTransition: false
                     }
 
                     Image {
                         visible: false
-                        height: 28
-                        width: 220
-                        source: "qrc:///images/merchant/input_box.png"
+                        height: 28 * scaleRatio
+                        width: 220 * scaleRatio
+                        source: "../../images/merchant/input_box.png"
                         opacity: 0.2
                     }
                 }
@@ -516,30 +517,30 @@ Item {
         }
 
         Item {
-            Layout.topMargin: 32
-            Layout.preferredHeight: 40
-            Layout.fillWidth: true
+            Layout.topMargin: 32 * scaleRatio
+            Layout.preferredHeight: 40 * scaleRatio
+            anchors.left: parent.left
+            anchors.right: parent.right
 
             ColumnLayout {
-                spacing: 16
+                spacing: 16 * scaleRatio
 
                 MerchantCheckbox {
                     id: trackingCheckbox
                     checked: root.enableTracking
-                    text: qsTr("Enable sales tracker") + translationManager.emptyString
+                    text: qsTr("Enable sales tracker")
 
                     onChanged: {
                         root.enableTracking = this.checked;
                     }
                 }
 
-                MoneroComponents.TextPlain {
+                Text {
                     id: content
-                    font.pixelSize: 14
+                    font.pixelSize: 14 * scaleRatio
                     font.bold: false
                     color: "white"
-                    text: qsTr("Leave this page") + translationManager.emptyString
-                    themeTransition: false
+                    text: qsTr("Leave this page")
 
                     MouseArea {
                         anchors.fill: parent
@@ -556,20 +557,19 @@ Item {
         // Shows when the window is too small
         visible: parent.width < root.minWidth
         anchors.top: parent.top
-        anchors.topMargin: 100;
+        anchors.topMargin: 100 * scaleRatio;
         anchors.horizontalCenter: parent.horizontalCenter
-        height: 120
-        width: 400
+        height: 120 * scaleRatio
+        width: 400 * scaleRatio
         radius: 5
 
-        MoneroComponents.TextPlain {
+        Text {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: 14
+            font.pixelSize: 14 * scaleRatio
             font.bold: true
             color: MoneroComponents.Style.moneroGrey
-            text: qsTr("The merchant page requires a larger window") + translationManager.emptyString
-            themeTransition: false
+            text: qsTr("The merchant page requires a larger window")
         }
     }
 
@@ -623,7 +623,7 @@ Item {
                     in_txpool = true;
                 } else {
                     if (blockchainHeight == null)
-                        blockchainHeight = walletManager.blockchainHeight()
+                        blockchainHeight = appWindow.currentWallet.blockChainHeight()
                     confirmations = blockchainHeight - blockHeight - 1
                     displayAmount = model.data(idx, TransactionHistoryModel.TransactionDisplayAmountRole);
                 }

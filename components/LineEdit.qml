@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -26,21 +27,19 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.9
-import QtGraphicalEffects 1.0
+import QtQuick 2.0
 
 import "../components" as MoneroComponents
 
 Item {
     id: item
-    property alias input: input
     property alias text: input.text
 
     property alias placeholderText: placeholderLabel.text
     property bool placeholderCenter: false
     property string placeholderFontFamily: MoneroComponents.Style.fontRegular.name
     property bool placeholderFontBold: false
-    property int placeholderFontSize: 18
+    property int placeholderFontSize: 18 * scaleRatio
     property string placeholderColor: MoneroComponents.Style.defaultFontColor
     property real placeholderOpacity: 0.35
 
@@ -53,42 +52,38 @@ Item {
     property alias inlineButtonText: inlineButtonId.text
     property alias inlineIcon: inlineIcon.visible
     property bool copyButton: false
-    property alias copyButtonText: copyButtonId.text
-    property alias copyButtonEnabled: copyButtonId.enabled
 
     property bool borderDisabled: false
     property string borderColor: {
-        if(error && input.text !== ""){
-            return MoneroComponents.Style.inputBorderColorInvalid;
-        } else if(input.activeFocus){
+        if(input.activeFocus){
             return MoneroComponents.Style.inputBorderColorActive;
         } else {
             return MoneroComponents.Style.inputBorderColorInActive;
         }
     }
-
-    property int fontSize: 18
+    property int fontSize: 18 * scaleRatio
+    property bool showBorder: false
     property bool fontBold: false
     property alias fontColor: input.color
     property bool error: false
     property alias labelText: inputLabel.text
     property alias labelColor: inputLabel.color
     property alias labelTextFormat: inputLabel.textFormat
-    property string backgroundColor: "transparent"
+    property string backgroundColor: MoneroComponents.Style.lineEditBackgroundColor
     property string tipText: ""
-    property int labelFontSize: 16
+    property int labelFontSize: 16 * scaleRatio
     property bool labelFontBold: false
     property alias labelWrapMode: inputLabel.wrapMode
     property alias labelHorizontalAlignment: inputLabel.horizontalAlignment
     property bool showingHeader: inputLabel.text !== "" || copyButton
-    property int inputHeight: 42
+    property int inputHeight: 42 * scaleRatio
 
     signal labelLinkActivated(); // input label, rich text <a> signal
     signal editingFinished();
     signal accepted();
     signal textUpdated();
 
-    height: showingHeader ? (inputLabel.height + inputItem.height + 2) : 42
+    height: showingHeader ? (inputLabel.height + inputItem.height + 2) * scaleRatio : 42 * scaleRatio
 
     onTextUpdated: {
         // check to remove placeholder text when there is content
@@ -109,7 +104,7 @@ Item {
         }
     }
 
-    MoneroComponents.TextPlain {
+    Text {
         id: inputLabel
         anchors.top: parent.top
         anchors.left: parent.left
@@ -129,7 +124,7 @@ Item {
 
     MoneroComponents.LabelButton {
         id: copyButtonId
-        text: qsTr("Copy") + translationManager.emptyString
+        text: qsTr("Copy")
         anchors.right: parent.right
         onClicked: {
             if (input.text.length > 0) {
@@ -143,13 +138,13 @@ Item {
 
     Item{
         id: inputItem
-        height: inputHeight
+        height: inputHeight * scaleRatio
         anchors.top: showingHeader ? inputLabel.bottom : parent.top
-        anchors.topMargin: showingHeader ? 12 : 2
+        anchors.topMargin: showingHeader ? 12 * scaleRatio : 2 * scaleRatio
         width: parent.width
         clip: true
 
-        MoneroComponents.TextPlain {
+        Text {
             id: placeholderLabel
             visible: input.text ? false : true
             anchors.verticalCenter: parent.verticalCenter
@@ -159,14 +154,14 @@ Item {
                 if(placeholderCenter){
                     return undefined;
                 }
-                else if(inlineIcon.visible){ return 50; }
-                else { return 10; }
+                else if(inlineIcon.visible){ return 50 * scaleRatio; }
+                else { return 10 * scaleRatio; }
             }
 
             opacity: item.placeholderOpacity
             color: item.placeholderColor
             font.family: item.placeholderFontFamily
-            font.pixelSize: placeholderFontSize
+            font.pixelSize: placeholderFontSize * scaleRatio
             font.bold: item.placeholderFontBold
             text: ""
             z: 3
@@ -174,7 +169,7 @@ Item {
 
         Rectangle {
             anchors.fill: parent
-            anchors.topMargin: 1
+            anchors.topMargin: 1 * scaleRatio
             color: "transparent"
         }
 
@@ -189,34 +184,36 @@ Item {
 
         Image {
             id: inlineIcon
-            width: 26
-            height: 26
+            width: 26 * scaleRatio
+            height: 26 * scaleRatio
             anchors.top: parent.top
-            anchors.topMargin: 8
+            anchors.topMargin: 8 * scaleRatio
             anchors.left: parent.left
-            anchors.leftMargin: 12
-            source: "qrc:///images/moneroIcon-28x28.png"
+            anchors.leftMargin: 12 * scaleRatio
+            source: "../images/bittubeIcon-28x28.png"
             visible: false
         }
 
         MoneroComponents.Input {
             id: input
             anchors.fill: parent
-            anchors.leftMargin: inlineIcon.visible ? 44 : 0
+            anchors.leftMargin: inlineIcon.visible ? 44 * scaleRatio : 0
             font.pixelSize: item.fontSize
             font.bold: item.fontBold
             onEditingFinished: item.editingFinished()
             onAccepted: item.accepted();
             onTextChanged: item.textUpdated()
-            topPadding: 10
-            bottomPadding: 10
+            topPadding: 10 * scaleRatio
+            bottomPadding: 10 * scaleRatio
         }
 
         MoneroComponents.InlineButton {
             id: inlineButtonId
             visible: item.inlineButtonText ? true : false
             anchors.right: parent.right
-            anchors.rightMargin: 8
+            anchors.rightMargin: 8 * scaleRatio
+            anchors.top: parent.top
+            anchors.topMargin: 6 * scaleRatio
         }
     }
 }

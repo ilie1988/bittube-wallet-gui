@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -46,6 +47,8 @@ Window {
     property alias text: dialogContent.text
     property alias content: root.text
     property alias textArea: dialogContent
+    property bool commandArea: true
+
     property var icon
 
     // same signals as Dialog has
@@ -153,7 +156,7 @@ Window {
                             timeZoneName: undefined
                         });
 
-                        var _timestamp = log_color("[" + timestamp + "]", "#FFFFFF");
+                        var _timestamp = log_color("[" + timestamp + "]", "#808080");
                         var _msg = log_color(msg, color);
                         textArea.append(_timestamp + " " + _msg);
 
@@ -170,6 +173,7 @@ Window {
 
         RowLayout {
             Layout.fillWidth: true
+            visible: commandArea
 
             MoneroComponents.LineEdit {
                 id: sendCommandText

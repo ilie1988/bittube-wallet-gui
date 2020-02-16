@@ -26,7 +26,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.9
+import QtQuick 2.7
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 2.0
 
@@ -42,34 +42,34 @@ Rectangle {
 
     ColumnLayout {
         id: settingsLog
-        property int itemHeight: 60
+        property int itemHeight: 60 * scaleRatio
         Layout.fillWidth: true
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.margins: 20
+        anchors.margins: (isMobile)? 17 * scaleRatio : 20 * scaleRatio
         anchors.topMargin: 0
         spacing: 10
 
 //        Rectangle {
 //            // divider
-//            Layout.preferredHeight: 1
+//            Layout.preferredHeight: 1 * scaleRatio
 //            Layout.fillWidth: true
-//            Layout.bottomMargin: 8
+//            Layout.bottomMargin: 8 * scaleRatio
 //            color: MoneroComponents.Style.dividerColor
 //            opacity: MoneroComponents.Style.dividerOpacity
 //        }
 
-        MoneroComponents.TextPlain {
-            Layout.bottomMargin: 2
+        Text {
+            Layout.bottomMargin: 2 * scaleRatio
             color: MoneroComponents.Style.defaultFontColor
-            font.pixelSize: 18
+            font.pixelSize: 18 * scaleRatio
             font.family: MoneroComponents.Style.fontRegular.name
             text: qsTr("Log level") + translationManager.emptyString
         }
 
         ColumnLayout {
-            spacing: 10
+            spacing: 10 * scaleRatio
             Layout.fillWidth: true
             id: logColumn
             z: parent.z + 1
@@ -87,7 +87,7 @@ Rectangle {
             MoneroComponents.StandardDropdown {
                 id: logLevelDropdown
                 dataModel: logLevel
-                itemTopMargin: 2
+                itemTopMargin: 2 * scaleRatio
                 currentIndex: appWindow.persistentSettings.logLevel;
                 onChanged: {
                     if (currentIndex == 5) {
@@ -102,6 +102,10 @@ Rectangle {
                 }
                 Layout.fillWidth: true
                 Layout.preferredWidth: logColumn.width
+                shadowReleasedColor: "#FF4304"
+                shadowPressedColor: "#B32D00"
+                releasedColor: "#363636"
+                pressedColor: "#202020"
                 z: parent.z + 1
             }
 
@@ -112,8 +116,8 @@ Rectangle {
                 Layout.preferredWidth: logColumn.width
                 text: appWindow.persistentSettings.logCategories
                 placeholderText: "(e.g. *:WARNING,net.p2p:DEBUG)"
-                placeholderFontSize: 14
-                fontSize: 14
+                placeholderFontSize: 14 * scaleRatio
+                fontSize: 14 * scaleRatio
                 enabled: logLevelDropdown.currentIndex === 5
                 onEditingFinished: {
                     if(enabled) {
@@ -125,11 +129,11 @@ Rectangle {
             }
         }
 
-        MoneroComponents.TextPlain {
-            Layout.topMargin: 10
-            Layout.bottomMargin: 2
+        Text {
+            Layout.topMargin: 10 * scaleRatio
+            Layout.bottomMargin: 2 * scaleRatio
             color: MoneroComponents.Style.defaultFontColor
-            font.pixelSize: 18
+            font.pixelSize: 18 * scaleRatio
             font.family: MoneroComponents.Style.fontRegular.name
             text: qsTr("Daemon log") + translationManager.emptyString
         }
@@ -137,12 +141,12 @@ Rectangle {
         Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.preferredHeight: 240
+            Layout.preferredHeight: 240 * scaleRatio
 
             Rectangle {
                 anchors.fill: parent
                 color: "transparent"
-                border.color: MoneroComponents.Style.inputBorderColorInActive
+                border.color: MoneroComponents.Style.inputBorderColorActive
                 border.width: 1
                 radius: 4
             }
@@ -154,12 +158,12 @@ Rectangle {
                 TextArea.flickable: TextArea {
                     id : consoleArea
                     color: MoneroComponents.Style.defaultFontColor
-                    selectionColor: MoneroComponents.Style.textSelectionColor
+                    selectionColor: MoneroComponents.Style.dimmedFontColor
                     textFormat: TextEdit.RichText
                     selectByMouse: true
                     selectByKeyboard: true
                     font.family: MoneroComponents.Style.defaultFontColor
-                    font.pixelSize: 14
+                    font.pixelSize: 14 * scaleRatio
                     wrapMode: TextEdit.Wrap
                     readOnly: true
                     function logCommand(msg){
@@ -168,11 +172,11 @@ Rectangle {
                     }
                     function logMessage(msg){
                         msg = msg.trim();
-                        var color = MoneroComponents.Style.defaultFontColor;
+                        var color = "#BBBBBB";
                         if(msg.toLowerCase().indexOf('error') >= 0){
-                            color = MoneroComponents.Style.errorColor;
+                            color = "red";
                         } else if (msg.toLowerCase().indexOf('warning') >= 0){
-                            color = MoneroComponents.Style.warningColor;
+                            color = "yellow";
                         }
 
                         // format multi-lines
@@ -192,7 +196,7 @@ Rectangle {
                             timeZoneName: undefined
                         });
 
-                        var _timestamp = log_color("[" + timestamp + "]", MoneroComponents.Style.defaultFontColor);
+                        var _timestamp = log_color("[" + timestamp + "]", "#BBBBBB");
                         var _msg = log_color(msg, color);
                         consoleArea.append(_timestamp + " " + _msg);
 
@@ -212,15 +216,11 @@ Rectangle {
             Layout.fillWidth: true
             fontBold: false
             placeholderText: qsTr("command + enter (e.g 'help' or 'status')") + translationManager.emptyString
-            placeholderFontSize: 16
+            placeholderFontSize: 16 * scaleRatio
             onAccepted: {
                 if(text.length > 0) {
                     consoleArea.logCommand(">>> " + text)
-                    daemonManager.sendCommandAsync(text.split(" "), currentWallet.nettype, function(result) {
-                        if (!result) {
-                            appWindow.showStatusMessage(qsTr("Failed to send command"), 3);
-                        }
-                    });
+                    daemonManager.sendCommand(text, currentWallet.nettype);
                 }
                 text = ""
             }

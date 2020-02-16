@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -26,7 +27,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.9
+import QtQuick 2.0
 import moneroComponents.Wallet 1.0
 
 import "../components" as MoneroComponents
@@ -46,44 +47,43 @@ Rectangle {
             fillLevel = progressLevel
             if(typeof statusTxt != "undefined" && statusTxt != "") {
                 progressText.text = statusTxt;
-                progressTextValue.text = "";
             } else {
-                progressText.text = syncText;
-                progressTextValue.text = remaining.toFixed(0);
+                progressText.text = syncText + remaining.toFixed(0);
             }
         }
     }
 
     Item {
         anchors.top: item.top
-        anchors.topMargin: 10
-        anchors.leftMargin: 15
-        anchors.rightMargin: 15
+        anchors.topMargin: 10 * scaleRatio
+        anchors.leftMargin: 15 * scaleRatio
+        anchors.rightMargin: 15 * scaleRatio
         anchors.fill: parent
 
-        MoneroComponents.TextPlain {
+        Text {
             id: progressText
             anchors.top: parent.top
             anchors.topMargin: 6
             font.family: MoneroComponents.Style.fontMedium.name
-            font.pixelSize: 13
-            font.bold: MoneroComponents.Style.progressBarProgressTextBold
+            font.pixelSize: 13 * scaleRatio
+            font.bold: true
             color: MoneroComponents.Style.defaultFontColor
             text: qsTr("Synchronizing %1").arg(syncType) + translationManager.emptyString
-            height: 18
+            height: 18 * scaleRatio
         }
 
-        MoneroComponents.TextPlain {
+        Text {
             id: progressTextValue
             anchors.top: parent.top
             anchors.topMargin: 6
             anchors.right: parent.right
             font.family: MoneroComponents.Style.fontMedium.name
-            font.pixelSize: 13
-            font.bold: MoneroComponents.Style.progressBarProgressTextBold
+            font.pixelSize: 13 * scaleRatio
+            font.bold: true
             color: MoneroComponents.Style.defaultFontColor
-            height:18
+            height:18 * scaleRatio
         }
+
 
         Rectangle {
             id: bar
@@ -91,26 +91,9 @@ Rectangle {
             anchors.right: parent.right
             anchors.top: progressText.bottom
             anchors.topMargin: 4
-            height: 8
-            radius: 8
-            color: MoneroComponents.Style.progressBarBackgroundColor
-
-            states: [
-                State {
-                    name: "black";
-                    when: MoneroComponents.Style.blackTheme
-                    PropertyChanges { target: bar; color: MoneroComponents.Style._b_progressBarBackgroundColor}
-                }, State {
-                    name: "white";
-                    when: !MoneroComponents.Style.blackTheme
-                    PropertyChanges { target: bar; color: MoneroComponents.Style._w_progressBarBackgroundColor}
-                }
-            ]
-
-            transitions: Transition {
-                enabled: appWindow.themeTransition
-                ColorAnimation { properties: "color"; easing.type: Easing.InOutQuad; duration: 300 }
-            }
+            height: 8 * scaleRatio
+            radius: 8 * scaleRatio
+            color: "#333333" // progressbar bg
 
             Rectangle {
                 id: fillRect
@@ -118,19 +101,23 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
                 height: bar.height
-                property int maxWidth: bar.width
+                property int maxWidth: bar.width * scaleRatio
                 width: (maxWidth * fillLevel) / 100
                 radius: 8
-                color: "#FA6800"
+                // could change color based on progressbar status; if(item.fillLevel < 99 )
+                color: MoneroComponents.Style.progressbarBackgroundColor
             }
 
             Rectangle {
                 color:"#333"
                 anchors.bottom: parent.bottom
                 anchors.left: parent.left
-                anchors.leftMargin: 8
+                anchors.leftMargin: 8 * scaleRatio
             }
         }
 
     }
+
+
+
 }

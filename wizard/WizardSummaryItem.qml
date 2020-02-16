@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2019, The Monero Project
+// Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -26,60 +27,54 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.9
-import QtQuick.Layouts 1.2
-import QtQuick.Controls 2.0
-
-import "../js/Wizard.js" as Wizard
-import "../js/Utils.js" as Utils
-import "../components" as MoneroComponents
+import moneroComponents.WalletManager 1.0
+import QtQuick 2.2
+import QtQuick.Layouts 1.1
+import "../components"
+import "utils.js" as Utils
 
 ColumnLayout {
-    property alias header: key.text
-    property alias value: val.text
-    Layout.bottomMargin: 10
-    Layout.fillWidth: true
 
-    GridLayout {
-        Layout.fillWidth: true
-        columns: 2
-        columnSpacing: 0
+    id: passwordPage
+    opacity: 0
+    visible: false
 
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 20
-            color: "transparent"
-
-            MoneroComponents.TextBlock {
-                id: key
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                font.pixelSize: 16
-                text: "test"
-            }
-        }
-
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 20
-            color: "transparent"
-
-            MoneroComponents.TextBlock {
-                id: val
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignVCenter
-                font.pixelSize: 16
-                text: ""
-            }
-        }
+    Behavior on opacity {
+        NumberAnimation { duration: 100; easing.type: Easing.InQuad }
     }
 
-    Rectangle {
-        Layout.preferredHeight: 1
-        Layout.topMargin: 2
-        Layout.bottomMargin: 2
-        Layout.fillWidth: true
-        color: MoneroComponents.Style.dividerColor
-        opacity: MoneroComponents.Style.dividerOpacity
+    onOpacityChanged: visible = opacity !== 0
+
+
+    function onPageOpened(settingsObject) {
+        wizard.nextButton.enabled = true
+        wizard.nextButton.visible = true
+    }
+
+    function onPageClosed(settingsObject) {      
+        var walletFullPath = wizard.createWalletPath(uiItem.walletPath,uiItem.accountNameText);
+        settingsObject['view_only_wallet_path'] = walletFullPath
+        console.log("wallet path", walletFullPath)
+        return wizard.walletPathValid(walletFullPath);
+    }
+
+    ListModel {
+        id: dotsModel
+        ListElement { dotColor: "#4A4646" }
+        ListElement { dotColor: "#DBDBDB" }
+    }
+
+    WizardManageWalletUI {
+        id: uiItem
+        titleText: qsTr("Create view only wallet") + translationManager.emptyString
+        wordsTextItem.visible: false
+        restoreHeightVisible:false
+        walletName: appWindow.walletName + "-viewonly"
+        progressDotsModel: dotsModel
+        recoverMode: false
+    }
+
+    Component.onCompleted: {
+        //parent.wizardRestarted.connect(onWizardRestarted)
     }
 }

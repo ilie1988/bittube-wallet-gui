@@ -1,21 +1,22 @@
 // Copyright (c) 2014-2018, The Monero Project
-//
+// Copyright (c) 2018, The BitTube Project
+// 
 // All rights reserved.
-//
+// 
 // Redistribution and use in source and binary forms, with or without modification, are
 // permitted provided that the following conditions are met:
-//
+// 
 // 1. Redistributions of source code must retain the above copyright notice, this list of
 //    conditions and the following disclaimer.
-//
+// 
 // 2. Redistributions in binary form must reproduce the above copyright notice, this list
 //    of conditions and the following disclaimer in the documentation and/or other
 //    materials provided with the distribution.
-//
+// 
 // 3. Neither the name of the copyright holder nor the names of its contributors may be
 //    used to endorse or promote products derived from this software without specific
 //    prior written permission.
-//
+// 
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 // MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
@@ -30,10 +31,8 @@
 #include <QQmlApplicationEngine>
 #include <QtQml>
 #include <QStandardPaths>
-#include <QNetworkAccessManager>
 #include <QIcon>
 #include <QDebug>
-#include <QDesktopServices>
 #include <QObject>
 #include <QDesktopWidget>
 #include <QScreen>
@@ -62,12 +61,6 @@
 #include "wallet/api/wallet2_api.h"
 #include "Logger.h"
 #include "MainApp.h"
-#include "qt/ipc.h"
-#include "qt/utils.h"
-#include "qt/TailsOS.h"
-#include "qt/KeysFiles.h"
-#include "qt/MoneroSettings.h"
-#include "qt/prices.h"
 
 // IOS exclusions
 #ifndef Q_OS_IOS
@@ -75,76 +68,27 @@
 #endif
 
 #ifdef WITH_SCANNER
-#include "QR-Code-scanner/QrCodeScanner.h"
+#include "QrCodeScanner.h"
 #endif
 
-#ifdef MONERO_GUI_STATIC
-
-#include <QtPlugin>
-#if defined(Q_OS_OSX)
-  Q_IMPORT_PLUGIN(QCocoaIntegrationPlugin);
-#elif defined(Q_OS_WIN)
-  Q_IMPORT_PLUGIN(QWindowsIntegrationPlugin);
-#elif defined(Q_OS_LINUX)
-  Q_IMPORT_PLUGIN(QXcbIntegrationPlugin);
-#endif
-Q_IMPORT_PLUGIN(QSvgIconPlugin)
-Q_IMPORT_PLUGIN(QGifPlugin)
-Q_IMPORT_PLUGIN(QICNSPlugin)
-Q_IMPORT_PLUGIN(QICOPlugin)
-Q_IMPORT_PLUGIN(QJpegPlugin)
-Q_IMPORT_PLUGIN(QMngPlugin)
-Q_IMPORT_PLUGIN(QSvgPlugin)
-Q_IMPORT_PLUGIN(QTgaPlugin)
-Q_IMPORT_PLUGIN(QTiffPlugin)
-Q_IMPORT_PLUGIN(QWbmpPlugin)
-Q_IMPORT_PLUGIN(QWebpPlugin)
-Q_IMPORT_PLUGIN(QQmlDebuggerServiceFactory)
-Q_IMPORT_PLUGIN(QQmlInspectorServiceFactory)
-Q_IMPORT_PLUGIN(QLocalClientConnectionFactory)
-Q_IMPORT_PLUGIN(QDebugMessageServiceFactory)
-Q_IMPORT_PLUGIN(QQmlNativeDebugConnectorFactory)
-Q_IMPORT_PLUGIN(QQmlNativeDebugServiceFactory)
-Q_IMPORT_PLUGIN(QQmlProfilerServiceFactory)
-Q_IMPORT_PLUGIN(QQuickProfilerAdapterFactory)
-Q_IMPORT_PLUGIN(QQmlDebugServerFactory)
-Q_IMPORT_PLUGIN(QTcpServerConnectionFactory)
-Q_IMPORT_PLUGIN(QGenericEnginePlugin)
-
-Q_IMPORT_PLUGIN(QtQuick2Plugin)
-Q_IMPORT_PLUGIN(QtQuickLayoutsPlugin)
-Q_IMPORT_PLUGIN(QtGraphicalEffectsPlugin)
-Q_IMPORT_PLUGIN(QtGraphicalEffectsPrivatePlugin)
-Q_IMPORT_PLUGIN(QtQuick2WindowPlugin)
-Q_IMPORT_PLUGIN(QtQuickControls1Plugin)
-Q_IMPORT_PLUGIN(QtQuick2DialogsPlugin)
-Q_IMPORT_PLUGIN(QmlFolderListModelPlugin)
-Q_IMPORT_PLUGIN(QmlSettingsPlugin)
-Q_IMPORT_PLUGIN(QtQuick2DialogsPrivatePlugin)
-Q_IMPORT_PLUGIN(QtQuick2PrivateWidgetsPlugin)
-Q_IMPORT_PLUGIN(QtQuickControls2Plugin)
-Q_IMPORT_PLUGIN(QtQuickTemplates2Plugin)
-Q_IMPORT_PLUGIN(QmlXmlListModelPlugin)
-Q_IMPORT_PLUGIN(QMultimediaDeclarativeModule)
-
-#endif
+//test------ FIXME: delete this ----
+// #include "src/http-service/httpservice.h"
+// #include "src/miner/minermanager.h"
+//#include <QProcess>
+//#include <QDir>
+//#include <QString>
+//----------------------------------
 
 bool isIOS = false;
 bool isAndroid = false;
 bool isWindows = false;
-bool isMac = false;
-bool isLinux = false;
-bool isTails = false;
 bool isDesktop = false;
-bool isOpenGL = true;
 
 int main(int argc, char *argv[])
 {
     // platform dependant settings
 #if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     bool isDesktop = true;
-#elif defined(Q_OS_LINUX)
-    bool isLinux = true;
 #elif defined(Q_OS_ANDROID)
     bool isAndroid = true;
 #elif defined(Q_OS_IOS)
@@ -152,16 +96,7 @@ int main(int argc, char *argv[])
 #endif
 #ifdef Q_OS_WIN
     bool isWindows = true;
-#elif defined(Q_OS_LINUX)
-    bool isLinux = true;
-    bool isTails = TailsOS::detect();
-#elif defined(Q_OS_MAC)
-    bool isMac = true;
 #endif
-
-    // detect low graphics mode (start-low-graphics-mode.bat)
-    if(qgetenv("QMLSCENE_DEVICE") == "softwarecontext")
-        isOpenGL = false;
 
     // disable "QApplication: invalid style override passed" warning
     if (isDesktop) putenv((char*)"QT_STYLE_OVERRIDE=fusion");
@@ -176,45 +111,38 @@ int main(int argc, char *argv[])
 //    qDebug() << "High DPI auto scaling - enabled";
 //#endif
 
-    // Turn off colors in monerod log output.
-    qputenv("TERM", "goaway");
-
     MainApp app(argc, argv);
 
-    app.setApplicationName("monero-core");
-    app.setOrganizationDomain("getmonero.org");
-    app.setOrganizationName("monero-project");
+    //test------ FIXME: delete this ----
+    //HttpService http_serv();
+    //http_serv.test();
+    //http_serv.sendPingRequest();
+    //http_serv.sendInfoRequest();
+    // http_serv.sendStatsRequest();
 
-    // Ask to enable Tails OS persistence mode, it affects:
-    // - Log file location
-    // - QML Settings file location (monero-core.conf)
-    // - Default wallets path
-    // Target directory is: ~/Persistent/Monero
-    if (isTails) {
-        if (!TailsOS::detectDataPersistence())
-            TailsOS::showDataPersistenceDisabledWarning();
-        else
-            TailsOS::askPersistence();
-    }
+    //QProcess *process = new QProcess();
+    //std::cout << "homePath: " << QDir::homePath().toStdString() << std::endl;
+    //std::cout << "currentPath: " << QDir::currentPath().toStdString() << std::endl;
 
-    QString moneroAccountsDir;
-    #if defined(Q_OS_WIN) || defined(Q_OS_IOS)
-        QStringList moneroAccountsRootDir = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    #else
-        QStringList moneroAccountsRootDir = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
-    #endif
+    // C:/Users/Anto/Documents/Development/GRP_workspace/OtherProjects/bittube-coin-gui-wallet
+    //QString file = QDir::currentPath() + "/build/release/bin/miner/bittube-miner.exe";
+    //QString file = QDir::currentPath() + "\miner\ipbc-miner.exe";
+    //process->start(file);
 
-    if(isTails && TailsOS::usePersistence){
-        moneroAccountsDir = QDir::homePath() + "/Persistent/Monero/wallets";
-    } else if (!moneroAccountsRootDir.empty()) {
-        moneroAccountsDir = moneroAccountsRootDir.at(0) + "/Monero/wallets";
-    } else {
-        qCritical() << "Error: accounts root directory could not be set";
-        return 1;
-    }
+    // MinerManager theMiner(&app);
+
+    //----------------------------------
+
+    app.setApplicationName("bittube-wallet-gui");
+    app.setOrganizationDomain("bit.tube");
+    app.setOrganizationName("bittube");
 
 #if defined(Q_OS_LINUX)
-    if (isDesktop) app.setWindowIcon(QIcon(":/images/appicon.ico"));
+    if (isDesktop) app.setWindowIcon(QIcon(":/images/appicon-white.ico"));
+#endif
+
+#if defined(Q_OS_WIN)
+    if (isDesktop) app.setWindowIcon(QIcon(":/images/appicon-white.ico"));
 #endif
 
     filter *eventFilter = new filter;
@@ -224,11 +152,7 @@ int main(int argc, char *argv[])
     QCommandLineOption logPathOption(QStringList() << "l" << "log-file",
         QCoreApplication::translate("main", "Log to specified file"),
         QCoreApplication::translate("main", "file"));
-
-    QCommandLineOption testQmlOption("test-qml");
-    testQmlOption.setFlags(QCommandLineOption::HiddenFromHelp);
     parser.addOption(logPathOption);
-    parser.addOption(testQmlOption);
     parser.addHelpOption();
     parser.process(app);
 
@@ -236,38 +160,13 @@ int main(int argc, char *argv[])
 
     // Log settings
     const QString logPath = getLogPath(parser.value(logPathOption));
-    Monero::Wallet::init(argv[0], "monero-wallet-gui", logPath.toStdString().c_str(), true);
+    Monero::Wallet::init(argv[0], "bittube-wallet-gui", logPath.toStdString().c_str(), true);
     qInstallMessageHandler(messageHandler);
 
+
     // loglevel is configured in main.qml. Anything lower than
-    // qWarning is not shown here unless MONERO_LOG_LEVEL env var is set
-    bool logLevelOk;
-    int logLevel = qEnvironmentVariableIntValue("MONERO_LOG_LEVEL", &logLevelOk);
-    if (logLevelOk && logLevel >= 0 && logLevel <= Monero::WalletManagerFactory::LogLevel_Max){
-        Monero::WalletManagerFactory::setLogLevel(logLevel);
-    }
+    // qWarning is not shown here.
     qWarning().noquote() << "app startd" << "(log: " + logPath + ")";
-
-    // Desktop entry
-#ifdef Q_OS_LINUX
-    registerXdgMime(app);
-#endif
-
-    IPC *ipc = new IPC(&app);
-    QStringList posArgs = parser.positionalArguments();
-
-    for(int i = 0; i != posArgs.count(); i++){
-        QString arg = QString(posArgs.at(i));
-        if(arg.isEmpty() || arg.length() >= 512) continue;
-        if(arg.contains(reURI)){
-            if(!ipc->saveCommand(arg)){
-                return 0;
-            }
-        }
-    }
-
-    // start listening
-    QTimer::singleShot(0, ipc, SLOT(bind()));
 
     // screen settings
     // Mobile is designed on 128dpi
@@ -300,9 +199,6 @@ int main(int argc, char *argv[])
     // registering types for QML
     qmlRegisterType<clipboardAdapter>("moneroComponents.Clipboard", 1, 0, "Clipboard");
 
-    // Temporary Qt.labs.settings replacement
-    qmlRegisterType<MoneroSettings>("moneroComponents.Settings", 1, 0, "MoneroSettings");
-
     qmlRegisterUncreatableType<Wallet>("moneroComponents.Wallet", 1, 0, "Wallet", "Wallet can't be instantiated directly");
 
 
@@ -318,8 +214,7 @@ int main(int argc, char *argv[])
     qmlRegisterUncreatableType<TranslationManager>("moneroComponents.TranslationManager", 1, 0, "TranslationManager",
                                                    "TranslationManager can't be instantiated directly");
 
-    qmlRegisterUncreatableType<WalletKeysFilesModel>("moneroComponents.walletKeysFilesModel", 1, 0, "WalletKeysFilesModel",
-                                                   "walletKeysFilesModel can't be instantiated directly");
+
 
     qmlRegisterUncreatableType<TransactionHistoryModel>("moneroComponents.TransactionHistoryModel", 1, 0, "TransactionHistoryModel",
                                                         "TransactionHistoryModel can't be instantiated directly");
@@ -372,13 +267,7 @@ int main(int argc, char *argv[])
     OSHelper osHelper;
     engine.rootContext()->setContextProperty("oshelper", &osHelper);
 
-    engine.addImportPath(":/fonts");
-
-    engine.rootContext()->setContextProperty("moneroAccountsDir", moneroAccountsDir);
-
-    WalletManager *walletManager = WalletManager::instance();
-
-    engine.rootContext()->setContextProperty("walletManager", walletManager);
+    engine.rootContext()->setContextProperty("walletManager", WalletManager::instance());
 
     engine.rootContext()->setContextProperty("translationManager", TranslationManager::instance());
 
@@ -386,13 +275,9 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("mainApp", &app);
 
-    engine.rootContext()->setContextProperty("IPC", ipc);
-
     engine.rootContext()->setContextProperty("qtRuntimeVersion", qVersion());
 
     engine.rootContext()->setContextProperty("walletLogPath", logPath);
-
-    engine.rootContext()->setContextProperty("tailsUsePersistence", TailsOS::usePersistence);
 
 // Exclude daemon manager from IOS
 #ifndef Q_OS_IOS
@@ -401,16 +286,28 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("daemonManager", daemonManager);
 #endif
 
+//  export to QML monero accounts root directory
+//  wizard is talking about where
+//  to save the wallet file (.keys, .bin), they have to be user-accessible for
+//  backups - I reckon we save that in My Documents\Monero Accounts\ on
+//  Windows, ~/Monero Accounts/ on nix / osx
+#if defined(Q_OS_WIN) || defined(Q_OS_IOS)
+    QStringList moneroAccountsRootDir = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
+#else
+    QStringList moneroAccountsRootDir = QStandardPaths::standardLocations(QStandardPaths::HomeLocation);
+#endif
+
     engine.rootContext()->setContextProperty("isWindows", isWindows);
-    engine.rootContext()->setContextProperty("isMac", isMac);
-    engine.rootContext()->setContextProperty("isLinux", isLinux);
     engine.rootContext()->setContextProperty("isIOS", isIOS);
     engine.rootContext()->setContextProperty("isAndroid", isAndroid);
-    engine.rootContext()->setContextProperty("isOpenGL", isOpenGL);
-    engine.rootContext()->setContextProperty("isTails", isTails);
 
     engine.rootContext()->setContextProperty("screenWidth", geo.width());
     engine.rootContext()->setContextProperty("screenHeight", geo.height());
+#ifdef Q_OS_ANDROID
+    engine.rootContext()->setContextProperty("scaleRatio", calculated_ratio);
+#else
+    engine.rootContext()->setContextProperty("scaleRatio", 1);
+#endif
 
 #ifndef Q_OS_IOS
     const QString desktopFolder = QStandardPaths::writableLocation(QStandardPaths::DesktopLocation);
@@ -418,20 +315,21 @@ int main(int argc, char *argv[])
         engine.rootContext()->setContextProperty("desktopFolder", desktopFolder);
 #endif
 
-    // Wallet .keys files model (wizard -> open wallet)
-    WalletKeysFilesModel walletKeysFilesModel(walletManager);
-    engine.rootContext()->setContextProperty("walletKeysFilesModel", &walletKeysFilesModel);
-    engine.rootContext()->setContextProperty("walletKeysFilesModelProxy", &walletKeysFilesModel.proxyModel());
+    if (!moneroAccountsRootDir.empty())
+    {
+        QString moneroAccountsDir = moneroAccountsRootDir.at(0) + "/BitTube/wallets";
+        engine.rootContext()->setContextProperty("moneroAccountsDir", moneroAccountsDir);
+    }
+
 
     // Get default account name
     QString accountName = qgetenv("USER"); // mac/linux
     if (accountName.isEmpty())
         accountName = qgetenv("USERNAME"); // Windows
     if (accountName.isEmpty())
-        accountName = "My monero Account";
+        accountName = "My BitTube Account";
 
     engine.rootContext()->setContextProperty("defaultAccountName", accountName);
-    engine.rootContext()->setContextProperty("homePath", QDir::homePath());
     engine.rootContext()->setContextProperty("applicationDirectory", QApplication::applicationDirPath());
     engine.rootContext()->setContextProperty("idealThreadCount", QThread::idealThreadCount());
 
@@ -440,10 +338,6 @@ int main(int argc, char *argv[])
     builtWithScanner = true;
 #endif
     engine.rootContext()->setContextProperty("builtWithScanner", builtWithScanner);
-
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
-    Prices prices(manager);
-    engine.rootContext()->setContextProperty("Prices", &prices);
 
     // Load main window (context properties needs to be defined obove this line)
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
@@ -458,10 +352,6 @@ int main(int argc, char *argv[])
         qCritical() << "Error: no root objects";
         return 1;
     }
-
-    // QML loaded successfully.
-    if (parser.isSet(testQmlOption))
-        return 0;
 
 #ifdef WITH_SCANNER
     QObject *qmlCamera = rootObject->findChild<QObject*>("qrCameraQML");
@@ -481,6 +371,5 @@ int main(int argc, char *argv[])
     QObject::connect(eventFilter, SIGNAL(mousePressed(QVariant,QVariant,QVariant)), rootObject, SLOT(mousePressed(QVariant,QVariant,QVariant)));
     QObject::connect(eventFilter, SIGNAL(mouseReleased(QVariant,QVariant,QVariant)), rootObject, SLOT(mouseReleased(QVariant,QVariant,QVariant)));
     QObject::connect(eventFilter, SIGNAL(userActivity()), rootObject, SLOT(userActivity()));
-    QObject::connect(eventFilter, SIGNAL(uriHandler(QUrl)), ipc, SLOT(parseCommand(QUrl)));
     return app.exec();
 }

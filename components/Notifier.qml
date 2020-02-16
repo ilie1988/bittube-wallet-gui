@@ -1,4 +1,5 @@
 // Copyright (c) 2017-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -26,23 +27,29 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.9
+import QtQuick 2.0
 import QtQuick.Controls 1.4
 import moneroComponents.Wallet 1.0
-import "." as MoneroComponents
+
+import "../components" as MoneroComponents
 
 Item {
     id: item
     property string message: ""
     property bool active: false
-    height: 180
-    width: 320
+    // height: 120
+    // width: 240
     property int margin: 15
-    x: parent.width - width - margin
-    y: parent.height - height * scale.yScale - margin * scale.yScale
-
+    // x: parent.width - width - margin
+    // y: parent.height - height * scale.yScale - margin * scale.yScale
+    width: 600
+    height: 200
+    opacity: 0.7
+    x: parent.width / 2 - 300
+    y: parent.height / 2 - 100
+    
     Rectangle {
-        color: "#FF6C3C"
+        color: MoneroComponents.Style.notifierBackgroundColor
         border.color: "black"
         anchors.fill: parent
 
@@ -51,13 +58,15 @@ Item {
             readOnly: true
             backgroundVisible: false
             textFormat: TextEdit.AutoText
+            horizontalAlignment: TextInput.AlignHCenter
+            verticalAlignment: TextInput.AlignVCenter
             anchors.fill: parent
-            font.family: MoneroComponents.Style.fontRegular.name
-            font.pixelSize: 12
+            font.family: "Arial"
+            font.pixelSize: 20
             textMargin: 20
-            textColor: "white"
+            textColor: MoneroComponents.Style.notifierFontColor
             text: item.message
-            wrapMode: Text.WrapAnywhere
+            onLinkActivated: Qt.openUrlExternally(item.message.split("'")[1].split("'")[0])
         }
     }
 
@@ -65,14 +74,14 @@ Item {
         id: scale
         yScale: item.active ? 1 : 0
 
-        Behavior on yScale {
-            NumberAnimation { duration: 500; easing.type: Easing.InOutCubic }
-        }
+        // Behavior on yScale {
+        //     NumberAnimation { duration: 500; easing.type: Easing.InOutCubic }
+        // }
     }
 
     Timer {
         id: hider
-        interval: 30000; running: false; repeat: false
+        interval: 10000; running: false; repeat: false
         onTriggered: { item.active = false }
     }
 

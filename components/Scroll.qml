@@ -1,4 +1,5 @@
 // Copyright (c) 2014-2018, The Monero Project
+// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -62,7 +63,7 @@ Item {
             return t < 50 ? 50 : t
         }
         y: 0; x: 0
-        color: MoneroComponents.Style.orange
+        color: MoneroComponents.Style.blue
         opacity: flickable.moving || handleArea.pressed || scrollArea.containsMouse ? 0.8 : 0
         visible: flickable.contentHeight > flickable.height
 
