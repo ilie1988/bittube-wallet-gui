@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -27,15 +26,16 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.5
+import QtQuick 2.9
+import QtGraphicalEffects 1.0
 
 import "../components" as MoneroComponents
+import "effects/" as MoneroEffects
 
 Rectangle {
     id: button
     property alias text: label.text
     property bool checked: false
-    property alias dotColor: dot.color
     property alias symbol: symbolText.text
     property int numSelectedChildren: 0
     property var under: null
@@ -47,12 +47,11 @@ Rectangle {
         clicked();
     }
 
-
     function getOffset() {
         var offset = 0
         var item = button
         while (item.under) {
-            offset += 20 * scaleRatio
+            offset += 20
             item = item.under
         }
         return offset
@@ -60,77 +59,76 @@ Rectangle {
 
     color: "transparent"
     property bool present: !under || under.checked || checked || under.numSelectedChildren > 0
-    height: present ? ((appWindow.height >= 800) ? 44 * scaleRatio  : 38 * scaleRatio ) : 0
+    height: present ? ((appWindow.height >= 800) ? 44  : 38 ) : 0
 
-    // button gradient while checked
-    Image {
+    LinearGradient {
+        visible: isOpenGL && button.checked
         height: parent.height
         width: 260
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         anchors.rightMargin: -20
         anchors.leftMargin: parent.getOffset()
-        source: "../images/menuButtonGradient.png"
-        visible: button.checked
+        start: Qt.point(width, 0)
+        end: Qt.point(0, 0)
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: MoneroComponents.Style.menuButtonGradientStart }
+            GradientStop { position: 1.0; color: MoneroComponents.Style.menuButtonGradientStop }
+        }
+    }
+
+    // fallback hover effect when opengl is not available
+    Rectangle {
+        visible: !isOpenGL && button.checked
+        anchors.fill: parent
+        color: MoneroComponents.Style.menuButtonFallbackBackgroundColor
     }
 
     // button decorations that are subject to leftMargin offsets
     Rectangle {
         anchors.left: parent.left
-        anchors.leftMargin: parent.getOffset() + 20 * scaleRatio
+        anchors.leftMargin: 20
         height: parent.height
-        width: button.checked ? 20: 10
-        color: "#00000000"
-
-        // dot if unchecked
-        Rectangle {
-            id: dot
-            anchors.centerIn: parent
-            width: button.checked ? 20 * scaleRatio : 8 * scaleRatio
-            height: button.checked ? 20 * scaleRatio : 8 * scaleRatio
-            radius: button.checked ? 20 * scaleRatio : 4 * scaleRatio
-            color: button.dotColor
-            // arrow if checked
-            Image {
-                anchors.centerIn: parent
-                anchors.left: parent.left
-                source: "../images/menuArrow.png"
-                visible: button.checked
-            }
-        }
+        width: 2
+        color: button.checked ? MoneroComponents.Style.buttonBackgroundColor : "transparent"
 
         // button text
-        Text {
+        MoneroComponents.TextPlain {
             id: label
+            color: MoneroComponents.Style.menuButtonTextColor
+            themeTransitionBlackColor: MoneroComponents.Style._b_menuButtonTextColor
+            themeTransitionWhiteColor: MoneroComponents.Style._w_menuButtonTextColor
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: parent.right
-            anchors.leftMargin: 8 * scaleRatio
-            font.family: MoneroComponents.Style.fontMedium.name
+            anchors.leftMargin: button.getOffset() + 8
             font.bold: true
-            font.pixelSize: 16 * scaleRatio
-            color: MoneroComponents.Style.defaultFontColor
+            font.pixelSize: 14
         }
     }
 
     // menu button right arrow
-    Image {
+    MoneroEffects.ImageMask {
         anchors.verticalCenter: parent.verticalCenter
-        anchors.right: parent.right
-        anchors.rightMargin: 20 * scaleRatio
         anchors.leftMargin: parent.getOffset()
-        source: "../images/right.png"
-        opacity: button.checked ? 1.0 : 0.4
+        anchors.right: parent.right
+        anchors.rightMargin: 20
+        height: 14
+        width: 8
+        image: MoneroComponents.Style.menuButtonImageRightSource
+        color: button.checked ? MoneroComponents.Style.menuButtonImageRightColorActive : MoneroComponents.Style.menuButtonImageRightColor
+        opacity: button.checked ? 0.8 : 0.25
     }
 
-    Text {
+    MoneroComponents.TextPlain {
         id: symbolText
         anchors.right: parent.right
-        anchors.rightMargin: 44 * scaleRatio
+        anchors.rightMargin: 44
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: 12 * scaleRatio
+        font.pixelSize: 12
         font.bold: true
-        color: button.checked || buttonArea.containsMouse ? "#FFFFFF" : dot.color
+        color: MoneroComponents.Style.menuButtonTextColor
         visible: appWindow.ctrlPressed
+        themeTransition: false
     }
 
     MouseArea {

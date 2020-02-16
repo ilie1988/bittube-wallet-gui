@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 // 
 // All rights reserved.
 // 
@@ -27,7 +26,7 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.0
+import QtQuick 2.9
 import QtQuick.Layouts 1.1
 
 import "../components" as MoneroComponents
@@ -36,14 +35,14 @@ Item {
     id: radioButton
     property alias text: label.text
     property bool checked: false
-    property int fontSize: 14 * scaleRatio
+    property int fontSize: 14
     property alias fontColor: label.color
     signal clicked()
-    height: 26 * scaleRatio
+    height: 26
     width: layout.width
     // legacy properties
-    property var checkedColor: MoneroComponents.Style.radiobuttonCheckedColor
-    property var borderColor: MoneroComponents.Style.radiobuttonBorderColor
+    property var checkedColor: MoneroComponents.Style.blackTheme ? "white" : "#666666"
+    property var borderColor: checked ? MoneroComponents.Style.inputBorderColorActive : MoneroComponents.Style.inputBorderColorInActive
 
     function toggle(){
         radioButton.checked = !radioButton.checked
@@ -66,16 +65,16 @@ Item {
                 anchors.horizontalCenter: parent.horizontalCenter
                 anchors.verticalCenter: parent.verticalCenter
                 color: checkedColor
-                width: 10 * scaleRatio
-                height: 10 * scaleRatio
+                width: 10
+                height: 10
                 radius: 10
                 opacity: 0.8
             }
         }
 
-        Text {
+        MoneroComponents.TextPlain {
             id: label
-            Layout.leftMargin: (!isMobile ? 10 : 8) * scaleRatio
+            Layout.leftMargin: 10
             color: MoneroComponents.Style.defaultFontColor
             font.family: MoneroComponents.Style.fontRegular.name
             font.pixelSize: radioButton.fontSize

@@ -21,15 +21,35 @@
   <string>bittube-wallet-gui</string>
   
   <key>CFBundleName</key>
-  <string>BitTube Wallet GUI</string>
+  <string>Monero GUI</string>
 
   <key>CFBundleIdentifier</key>
-  <string>org.bittube.bittube-wallet-gui</string>
+  <string>org.bittube-project.bittube-wallet-gui</string>
 
   <key>NSSupportsAutomaticGraphicsSwitching</key>
   <true/>
 
   <key>NSRequiresAquaSystemAppearance</key>
   <string>True</string>
+
+  <key>CFBundleURLTypes</key>
+  <array>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>bittube Handler</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>bittube</string>
+      </array>
+    </dict>
+    <dict>
+      <key>CFBundleURLName</key>
+      <string>bittubeseed Handler</string>
+      <key>CFBundleURLSchemes</key>
+      <array>
+        <string>bittubeseed</string>
+      </array>
+    </dict>
+  </array>
 </dict>
 </plist>

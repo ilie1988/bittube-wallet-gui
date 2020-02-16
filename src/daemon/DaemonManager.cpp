@@ -1,3 +1,31 @@
+// Copyright (c) 2014-2019, The Monero Project
+//
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without modification, are
+// permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice, this list of
+//    conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice, this list
+//    of conditions and the following disclaimer in the documentation and/or other
+//    materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its contributors may be
+//    used to endorse or promote products derived from this software without specific
+//    prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
+// EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
+// THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
+// THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #include "DaemonManager.h"
 #include <QFile>
 #include <QThread>
@@ -15,7 +43,7 @@
 #include <QMap>
 
 namespace {
-    static const int DAEMON_START_TIMEOUT_SECONDS = 30;
+    static const int DAEMON_START_TIMEOUT_SECONDS = 120;
 }
 
 DaemonManager * DaemonManager::m_instance = nullptr;
@@ -33,8 +61,14 @@ DaemonManager *DaemonManager::instance(const QStringList *args)
     return m_instance;
 }
 
-bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const QString &dataDir, const QString &bootstrapNodeAddress)
+bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const QString &dataDir, const QString &bootstrapNodeAddress, bool noSync /* = false*/)
 {
+    if (!QFileInfo(m_bittubed).isFile())
+    {
+        emit daemonStartFailure("\"" + QDir::toNativeSeparators(m_bittubed) + "\" " + tr("executable is missing"));
+        return false;
+    }
+
     // prepare command line arguments and pass to bittubed
     QStringList arguments;
 
@@ -71,12 +105,18 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
         arguments << "--bootstrap-daemon-address" << bootstrapNodeAddress;
     }
 
+    if (noSync) {
+        arguments << "--no-sync";
+    }
+
     arguments << "--check-updates" << "disabled";
 
     // --max-concurrency based on threads available. max: 6
     int32_t concurrency = qBound(1, QThread::idealThreadCount() / 2, 6);
 
-    arguments << "--max-concurrency" << QString::number(concurrency);
+    if(!flags.contains("--max-concurrency", Qt::CaseSensitive)){
+        arguments << "--max-concurrency" << QString::number(concurrency);
+    }
 
     qDebug() << "starting bittubed " + m_bittubed;
     qDebug() << "With command line arguments " << arguments;
@@ -96,24 +136,19 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
 
     if (!started) {
         qDebug() << "Daemon start error: " + m_daemon->errorString();
-        emit daemonStartFailure();
+        emit daemonStartFailure(m_daemon->errorString());
         return false;
     }
 
     // Start start watcher
-    QFuture<bool> future = QtConcurrent::run(this, &DaemonManager::startWatcher, nettype);
-    QFutureWatcher<bool> * watcher = new QFutureWatcher<bool>();
-    connect(watcher, &QFutureWatcher<bool>::finished,
-            this, [this, watcher]() {
-        QFuture<bool> future = watcher->future();
-        watcher->deleteLater();
-        if(future.result())
+    m_scheduler.run([this, nettype, noSync] {
+        if (startWatcher(nettype)) {
             emit daemonStarted();
-        else
-            emit daemonStartFailure();
+            m_noSync = noSync;
+        } else {
+            emit daemonStartFailure(tr("Timed out, local node is not responding after %1 seconds").arg(DAEMON_START_TIMEOUT_SECONDS));
+        }
     });
-    watcher->setFuture(future);
-
 
     return true;
 }
@@ -121,21 +156,16 @@ bool DaemonManager::start(const QString &flags, NetworkType::Type nettype, const
 bool DaemonManager::stop(NetworkType::Type nettype)
 {
     QString message;
-    sendCommand("exit", nettype, message);
+    sendCommand({"exit"}, nettype, message);
     qDebug() << message;
 
     // Start stop watcher - Will kill if not shutting down
-    QFuture<bool> future = QtConcurrent::run(this, &DaemonManager::stopWatcher, nettype);
-    QFutureWatcher<bool> * watcher = new QFutureWatcher<bool>();
-    connect(watcher, &QFutureWatcher<bool>::finished,
-            this, [this, watcher]() {
-        QFuture<bool> future = watcher->future();
-        watcher->deleteLater();
-        if(future.result()) {
+    m_scheduler.run([this, nettype] {
+        if (stopWatcher(nettype))
+        {
             emit daemonStopped();
         }
     });
-    watcher->setFuture(future);
 
     return true;
 }
@@ -216,26 +246,27 @@ void DaemonManager::printError()
 bool DaemonManager::running(NetworkType::Type nettype) const
 { 
     QString status;
-    sendCommand("status", nettype, status);
+    sendCommand({"sync_info"}, nettype, status);
     qDebug() << status;
-    // `./bittubed status` returns BUSY when syncing.
-    // Treat busy as connected, until fixed upstream.
-    if (status.contains("Height:") || status.contains("BUSY") ) {
-        return true;
-    }
-    return false;
-}
-bool DaemonManager::sendCommand(const QString &cmd, NetworkType::Type nettype) const
-{
-    QString message;
-    return sendCommand(cmd, nettype, message);
+    return status.contains("Height:");
 }
 
-bool DaemonManager::sendCommand(const QString &cmd, NetworkType::Type nettype, QString &message) const
+bool DaemonManager::noSync() const noexcept
+{
+    return m_noSync;
+}
+
+void DaemonManager::runningAsync(NetworkType::Type nettype, const QJSValue& callback) const
+{ 
+    m_scheduler.run([this, nettype] {
+        return QJSValueList({running(nettype)});
+    }, callback);
+}
+
+bool DaemonManager::sendCommand(const QStringList &cmd, NetworkType::Type nettype, QString &message) const
 {
     QProcess p;
-    QStringList external_cmd;
-    external_cmd << cmd;
+    QStringList external_cmd(cmd);
 
     // Add network type flag if needed
     if (nettype == NetworkType::TESTNET)
@@ -252,6 +283,14 @@ bool DaemonManager::sendCommand(const QString &cmd, NetworkType::Type nettype, Q
     message = p.readAllStandardOutput();
     emit daemonConsoleUpdated(message);
     return started;
+}
+
+void DaemonManager::sendCommandAsync(const QStringList &cmd, NetworkType::Type nettype, const QJSValue& callback) const
+{
+    m_scheduler.run([this, cmd, nettype] {
+        QString message;
+        return QJSValueList({sendCommand(cmd, nettype, message)});
+    }, callback);
 }
 
 void DaemonManager::exit()
@@ -275,9 +314,9 @@ QVariantMap DaemonManager::validateDataDir(const QString &dataDir) const
             valid = false;
         }
 
-        // Make sure there is 20GB storage available
+        // Make sure there is 75GB storage available
         storageAvailable = storage.bytesAvailable()/1000/1000/1000;
-        if (storageAvailable < 20) {
+        if (storageAvailable < 75) {
             valid = false;
         }
     } else {
@@ -300,6 +339,7 @@ QVariantMap DaemonManager::validateDataDir(const QString &dataDir) const
 
 DaemonManager::DaemonManager(QObject *parent)
     : QObject(parent)
+    , m_scheduler(this)
 {
 
     // Platform depetent path to bittubed
@@ -313,4 +353,9 @@ DaemonManager::DaemonManager(QObject *parent)
         qCritical() << "no daemon binary defined for current platform";
         m_has_daemon = false;
     }
+}
+
+DaemonManager::~DaemonManager()
+{
+    m_scheduler.shutdownWaitForFinished();
 }

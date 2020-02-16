@@ -28,13 +28,13 @@
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import QtQuick.Controls 2.0
-import QtQuick 2.7
+import QtQuick 2.9
 
 import "../js/TxUtils.js" as TxUtils
 import "../components" as MoneroComponents
 
 TextArea {
-    property int fontSize: 18 * scaleRatio
+    property int fontSize: 18
     property bool fontBold: false
     property string fontColor: MoneroComponents.Style.defaultFontColor
 
@@ -49,17 +49,32 @@ TextArea {
     font.bold: fontBold
     horizontalAlignment: TextInput.AlignLeft
     selectByMouse: mouseSelection
-    selectionColor: MoneroComponents.Style.dimmedFontColor
-    selectedTextColor: MoneroComponents.Style.defaultFontColor
+    selectionColor: MoneroComponents.Style.textSelectionColor
+    selectedTextColor: MoneroComponents.Style.textSelectedColor
+
+    property int minimumHeight: 100
+    height: contentHeight > minimumHeight ? contentHeight : minimumHeight
 
     onTextChanged: {
         if(addressValidation){
             // js replacement for `RegExpValidator { regExp: /[0-9A-Fa-f]{95}/g }`
-            textArea.text = textArea.text.replace(/[^a-z0-9.@]/gi,'');
+            if (textArea.text.startsWith("bittube:")) {
+                error = false;
+                return;
+            }
+            textArea.text = textArea.text.replace(/[^a-z0-9.@\-]/gi,'');
             var address_ok = TxUtils.checkAddress(textArea.text, appWindow.persistentSettings.nettype) || TxUtils.isValidOpenAliasAddress(textArea.text);
             if(!address_ok) error = true;
             else error = false;
             TextArea.cursorPosition = textArea.text.length;
+        }
+    }
+
+    MoneroComponents.ContextMenu {
+        cursorShape: Qt.IBeamCursor
+        onPaste: {
+            textArea.clear();
+            textArea.paste();
         }
     }
 }

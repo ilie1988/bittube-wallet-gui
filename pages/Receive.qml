@@ -1,5 +1,4 @@
 // Copyright (c) 2014-2018, The Monero Project
-// Copyright (c) 2018, The BitTube Project
 //
 // All rights reserved.
 //
@@ -27,154 +26,38 @@
 // STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 // THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import QtQuick 2.0
+import QtQuick 2.9
 import QtQuick.Controls 2.0
 import QtQuick.Controls.Styles 1.4
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
+import FontAwesome 1.0
 
 import "../components" as MoneroComponents
-import moneroComponents.Clipboard 1.0
-import moneroComponents.Wallet 1.0
-import moneroComponents.WalletManager 1.0
-import moneroComponents.TransactionHistory 1.0
-import moneroComponents.TransactionHistoryModel 1.0
-import moneroComponents.Subaddress 1.0
-import moneroComponents.SubaddressModel 1.0
+import "../components/effects/" as MoneroEffects
+
+import bittubeComponents.Clipboard 1.0
+import bittubeComponents.Wallet 1.0
+import bittubeComponents.WalletManager 1.0
+import bittubeComponents.TransactionHistory 1.0
+import bittubeComponents.TransactionHistoryModel 1.0
+import bittubeComponents.Subaddress 1.0
+import bittubeComponents.SubaddressModel 1.0
 import "../js/TxUtils.js" as TxUtils
 
 Rectangle {
     id: pageReceive
     color: "transparent"
     property var model
-    property var current_address
     property alias receiveHeight: mainLayout.height
-    property alias addressText : pageReceive.current_address
-
-    function makeQRCodeString() {
-        var s = "bittube:"
-        var nfields = 0
-        s += current_address;
-        var amount = amountToReceiveLine.text.trim()
-        if (amount !== "" && amount.slice(-1) !== ".") {
-          s += (nfields++ ? "&" : "?")
-          s += "tx_amount=" + amount
-        }
-        return s
-    }
-
-    function update() {
-        //hide subaddress creation until blockchainheight 110k
-        if (walletManager.blockchainHeight() > 110000){
-            createAddressRow.visible = true;
-        } else {
-            createAddressRow.visible = false;
-        }
-
-        if (!appWindow.currentWallet || !trackingEnabled.checked) {
-            trackingLineText.text = "";
-            trackingModel.clear();
-            return
-        }
-        if (appWindow.currentWallet.connected() == Wallet.ConnectionStatus_Disconnected) {
-            trackingLineText.text = qsTr("WARNING: no connection to daemon");
-            trackingModel.clear();
-            return
-        }
-
-        var model = appWindow.currentWallet.historyModel
-        var count = model.rowCount()
-        var totalAmount = 0
-        var nTransactions = 0
-        var blockchainHeight = 0
-        var txs = []
-
-        for (var i = 0; i < count; ++i) {
-            var idx = model.index(i, 0)
-            var isout = model.data(idx, TransactionHistoryModel.TransactionIsOutRole);
-            var subaddrAccount = model.data(idx, TransactionHistoryModel.TransactionSubaddrAccountRole);
-            var subaddrIndex = model.data(idx, TransactionHistoryModel.TransactionSubaddrIndexRole);
-            if (!isout && subaddrAccount == appWindow.currentWallet.currentSubaddressAccount && subaddrIndex == current_subaddress_table_index) {
-                var amount = model.data(idx, TransactionHistoryModel.TransactionAtomicAmountRole);
-                totalAmount = walletManager.addi(totalAmount, amount)
-                nTransactions += 1
-
-                var txid = model.data(idx, TransactionHistoryModel.TransactionHashRole);
-                var blockHeight = model.data(idx, TransactionHistoryModel.TransactionBlockHeightRole);
-
-                var in_txpool = false;
-                var confirmations = 0;
-                var displayAmount = 0;
-
-                if (blockHeight == 0) {
-                    in_txpool = true;
-                } else {
-                    if (blockchainHeight == 0)
-                        blockchainHeight = walletManager.blockchainHeight()
-                    confirmations = blockchainHeight - blockHeight - 1
-                    displayAmount = model.data(idx, TransactionHistoryModel.TransactionDisplayAmountRole);
-                }
-
-                txs.push({
-                    "amount": displayAmount,
-                    "confirmations": confirmations,
-                    "blockheight": blockHeight,
-                    "in_txpool": in_txpool,
-                    "txid": txid
-                })
-            }
-        }
-
-        // Update tracking status label
-        if (nTransactions == 0) {
-            trackingLineText.text = qsTr("No transaction found yet...") + translationManager.emptyString
-            return
-        }
-        else if(nTransactions === 1){
-            trackingLineText.text = qsTr("Transaction found") + ":" + translationManager.emptyString;
-        } else {
-            trackingLineText.text = qsTr("%1 transactions found").arg(nTransactions) + ":" + translationManager.emptyString
-        }
-
-        var max_tracking = 3;
-        toReceiveSatisfiedLine.text = "";
-        var expectedAmount = walletManager.amountFromString(amountToReceiveLine.text)
-        if (expectedAmount && expectedAmount != amount) {
-            var displayTotalAmount = walletManager.displayAmount(totalAmount)
-            if (amount > expectedAmount) toReceiveSatisfiedLine.text += qsTr("With more TUBE");
-            else if (amount < expectedAmount) toReceiveSatisfiedLine.text = qsTr("With not enough TUBE")
-            toReceiveSatisfiedLine.text += ": " + "<br>" +
-                    qsTr("Expected") + ": " + amountToReceiveLine.text + "<br>" +
-                    qsTr("Total received") + ": " + displayTotalAmount + translationManager.emptyString;
-        }
-
-        trackingModel.clear();
-
-        if (txs.length > 3) {
-            txs.length = 3;
-        }
-
-        txs.forEach(function(tx){
-            trackingModel.append({
-                "amount": tx.amount,
-                "confirmations": tx.confirmations,
-                "blockheight": tx.blockHeight,
-                "in_txpool": tx.in_txpool,
-                "txid": tx.txid
-            });
-        });
-
-        //setTrackingLineText(text + "<br>" + list.join("<br>"))
-    }
 
     function renameSubaddressLabel(_index){
         inputDialog.labelText = qsTr("Set the label of the selected address:") + translationManager.emptyString;
-        inputDialog.inputText = appWindow.currentWallet.getSubaddressLabel(appWindow.currentWallet.currentSubaddressAccount, _index);
         inputDialog.onAcceptedCallback = function() {
             appWindow.currentWallet.subaddress.setLabel(appWindow.currentWallet.currentSubaddressAccount, _index, inputDialog.inputText);
         }
         inputDialog.onRejectedCallback = null;
-        inputDialog.open()
+        inputDialog.open(appWindow.currentWallet.getSubaddressLabel(appWindow.currentWallet.currentSubaddressAccount, _index))
     }
 
     Clipboard { id: clipboard }
@@ -182,18 +65,14 @@ Rectangle {
     /* main layout */
     ColumnLayout {
         id: mainLayout
-        anchors.margins: (isMobile)? 17 * scaleRatio : 20 * scaleRatio
-        anchors.topMargin: 40 * scaleRatio
+        anchors.margins: 20
+        anchors.topMargin: 40
 
         anchors.left: parent.left
         anchors.top: parent.top
         anchors.right: parent.right
 
-        spacing: 20 * scaleRatio
-        property int labelWidth: 120 * scaleRatio
-        property int editWidth: 400 * scaleRatio
-        property int lineEditFontSize: 12 * scaleRatio
-        property int qrCodeSize: 220 * scaleRatio
+        spacing: 20
 
         ColumnLayout {
             id: addressRow
@@ -201,28 +80,15 @@ Rectangle {
 
             MoneroComponents.LabelSubheader {
                 Layout.fillWidth: true
+                fontSize: 24
                 textFormat: Text.RichText
-                text: "<style type='text/css'>a {text-decoration: none; color: #00abff; font-size: 14px;}</style>" +
-                      qsTr("Addresses") +
-                      "<font size='2'> </font><a href='#'>" +
-                      qsTr("Help") + "</a>" +
-                      translationManager.emptyString
-                onLinkActivated: {
-                    receivePageDialog.title  = qsTr("Tracking payments") + translationManager.emptyString;
-                    receivePageDialog.text = qsTr(
-                        "<p>This QR code includes the address you selected above and" +
-                        "the amount you entered below. Share it with others (right-click->Save) " +
-                        "so they can more easily send you exact amounts.</p>"
-                    )
-                    receivePageDialog.icon = StandardIcon.Information
-                    receivePageDialog.open()
-                }
+                text: qsTr("Addresses") + translationManager.emptyString
             }
 
             ColumnLayout {
                 id: subaddressListRow
-                property int subaddressListItemHeight: 32 * scaleRatio
-                Layout.topMargin: 22 * scaleRatio
+                property int subaddressListItemHeight: 50
+                Layout.topMargin: 6
                 Layout.fillWidth: true
                 Layout.minimumWidth: 240
                 Layout.preferredHeight: subaddressListItemHeight * subaddressListView.count
@@ -230,10 +96,12 @@ Rectangle {
 
                 ListView {
                     id: subaddressListView
-                    Layout.fillHeight: true
                     Layout.fillWidth: true
+                    Layout.fillHeight: true
                     clip: true
                     boundsBehavior: ListView.StopAtBounds
+                    interactive: false
+
                     delegate: Rectangle {
                         id: tableItem2
                         height: subaddressListRow.subaddressListItemHeight
@@ -246,8 +114,14 @@ Rectangle {
                             anchors.left: parent.left
                             anchors.top: parent.top
                             height: 1
-                            color: "#404040"
+                            color: MoneroComponents.Style.appWindowBorderColor
                             visible: index !== 0
+
+                            MoneroEffects.ColorTransition {
+                                targetObj: parent
+                                blackColor: MoneroComponents.Style._b_appWindowBorderColor
+                                whiteColor: MoneroComponents.Style._w_appWindowBorderColor
+                            }
                         }
 
                         Rectangle {
@@ -262,79 +136,80 @@ Rectangle {
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: parent.left
                                 anchors.leftMargin: 6
-                                fontSize: 14 * scaleRatio
-                                fontBold: true
+                                fontSize: 16
                                 text: "#" + index
+                                themeTransition: false
                             }
 
                             MoneroComponents.Label {
                                 id: nameLabel
-                                color: "#a5a5a5"
+                                color: MoneroComponents.Style.dimmedFontColor
                                 anchors.verticalCenter: parent.verticalCenter
                                 anchors.left: idLabel.right
                                 anchors.leftMargin: 6
-                                fontSize: 14 * scaleRatio
-                                fontBold: true
+                                fontSize: 16
                                 text: label
+                                elide: Text.ElideRight
+                                textWidth: addressLabel.x - nameLabel.x - 1
+                                themeTransition: false
                             }
 
                             MoneroComponents.Label {
+                                id: addressLabel
                                 color: MoneroComponents.Style.defaultFontColor
                                 anchors.verticalCenter: parent.verticalCenter
-                                anchors.left: nameLabel.right
-                                anchors.leftMargin: 6
-                                fontSize: 14 * scaleRatio
-                                fontBold: true
-                                text: {
-                                    if(isMobile){
-                                        TxUtils.addressTruncate(address, 6);
-                                    } else {
-                                        return TxUtils.addressTruncate(address, 10);
-                                    }
-                                }
+                                anchors.left: parent.right
+                                anchors.leftMargin: -addressLabel.width - 5
+                                fontSize: 16
+                                fontFamily: MoneroComponents.Style.fontMonoRegular.name;
+                                text: TxUtils.addressTruncatePretty(address, mainLayout.width < 520 ? 1 : (mainLayout.width < 650 ? 2 : 3))
+                                themeTransition: false
                             }
 
-                            MouseArea{
+                            MouseArea {
                                 cursorShape: Qt.PointingHandCursor
                                 anchors.fill: parent
                                 hoverEnabled: true
-                                onEntered: {
-                                    tableItem2.color = "#26FFFFFF"
-                                }
-                                onExited: {
-                                    tableItem2.color = "transparent"
-                                }
-                                onClicked: {
-                                    subaddressListView.currentIndex = index;
-                                }
+                                onEntered: tableItem2.color = MoneroComponents.Style.titleBarButtonHoverColor
+                                onExited: tableItem2.color = "transparent"
+                                onClicked: subaddressListView.currentIndex = index;
                             }
                         }
 
-                        MoneroComponents.IconButton {
-                            id: renameButton
-                            imageSource: "../images/editIcon.png"
+                        RowLayout {
                             anchors.verticalCenter: parent.verticalCenter
-                            anchors.right: index !== 0 ? copyButton.left : parent.right
-                            anchors.rightMargin: index !== 0 ? 0 : 6
-                            anchors.top: undefined
-                            visible: index !== 0
-
-                            onClicked: {
-                                renameSubaddressLabel(index);
-                            }
-                        }
-
-                        MoneroComponents.IconButton {
-                            id: copyButton
-                            imageSource: "../images/copyToClipboard.png"
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.top: undefined
                             anchors.right: parent.right
+                            anchors.rightMargin: 6
+                            height: 21
+                            spacing: 10
 
-                            onClicked: {
-                                console.log("Address copied to clipboard");
-                                clipboard.setText(address);
-                                appWindow.showStatusMessage(qsTr("Address copied to clipboard"),3);
+                            MoneroComponents.IconButton {
+                                id: renameButton
+                                image: "qrc:///images/edit.svg"
+                                color: MoneroComponents.Style.defaultFontColor
+                                opacity: 0.5
+                                Layout.preferredWidth: 23
+                                Layout.preferredHeight: 21
+                                visible: index !== 0
+
+                                onClicked: {
+                                    renameSubaddressLabel(index);
+                                }
+                            }
+
+                            MoneroComponents.IconButton {
+                                id: copyButton
+                                image: "qrc:///images/copy.svg"
+                                color: MoneroComponents.Style.defaultFontColor
+                                opacity: 0.5
+                                Layout.preferredWidth: 16
+                                Layout.preferredHeight: 21
+
+                                onClicked: {
+                                    console.log("Address copied to clipboard");
+                                    clipboard.setText(address);
+                                    appWindow.showStatusMessage(qsTr("Address copied to clipboard"),3);
+                                }
                             }
                         }
                     }
@@ -349,78 +224,59 @@ Rectangle {
                 }
             }
 
-            // 'fake' row for 'create new address'
-            ColumnLayout {
-                id: createAddressRow
+            Rectangle {
+                color: MoneroComponents.Style.appWindowBorderColor
                 Layout.fillWidth: true
-                spacing: 0
+                height: 1
 
-                Rectangle {
-                    color: "#404040"
-                    Layout.fillWidth: true
-                    height: 1
+                MoneroEffects.ColorTransition {
+                    targetObj: parent
+                    blackColor: MoneroComponents.Style._b_appWindowBorderColor
+                    whiteColor: MoneroComponents.Style._w_appWindowBorderColor
                 }
+            }
 
-                Rectangle {
-                    id: createAddressRect
-                    Layout.preferredHeight: subaddressListRow.subaddressListItemHeight
-                    color: "transparent"
-                    Layout.fillWidth: true
-
-                    MoneroComponents.Label {
-                        id: createAddressLabel
-                        color: "#757575"
-                        anchors.verticalCenter: parent.verticalCenter
-                        anchors.left: parent.left
-                        anchors.leftMargin: 6
-                        fontSize: 14 * scaleRatio
-                        fontBold: true
-                        text: "+ " + qsTr("Create new address") + translationManager.emptyString;
+            MoneroComponents.CheckBox {
+                id: addNewAddressCheckbox
+                border: false
+                uncheckedIcon: FontAwesome.plusCircle
+                toggleOnClick: false
+                fontAwesomeIcons: true
+                fontSize: 16
+                iconOnTheLeft: true
+                Layout.fillWidth: true
+                Layout.topMargin: 10
+                text: qsTr("Create new address") + translationManager.emptyString;
+                onClicked: {
+                    inputDialog.labelText = qsTr("Set the label of the new address:") + translationManager.emptyString
+                    inputDialog.onAcceptedCallback = function() {
+                        appWindow.currentWallet.subaddress.addRow(appWindow.currentWallet.currentSubaddressAccount, inputDialog.inputText)
+                        current_subaddress_table_index = appWindow.currentWallet.numSubaddresses(appWindow.currentWallet.currentSubaddressAccount) - 1
+                        subaddressListView.currentIndex = current_subaddress_table_index
                     }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-
-                        onEntered: {
-                            createAddressRect.color = "#26FFFFFF"
-                        }
-                        onExited: {
-                            createAddressRect.color = "transparent"
-                        }
-                        onClicked: {
-                            inputDialog.labelText = qsTr("Set the label of the new address:") + translationManager.emptyString
-                            inputDialog.inputText = qsTr("(Untitled)")
-                            inputDialog.onAcceptedCallback = function() {
-                                appWindow.currentWallet.subaddress.addRow(appWindow.currentWallet.currentSubaddressAccount, inputDialog.inputText)
-                                current_subaddress_table_index = appWindow.currentWallet.numSubaddresses(appWindow.currentWallet.currentSubaddressAccount) - 1
-                            }
-                            inputDialog.onRejectedCallback = null;
-                            inputDialog.open()
-                        }
-                    }
+                    inputDialog.onRejectedCallback = null;
+                    inputDialog.open()
                 }
             }
         }
 
         ColumnLayout {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 11 * scaleRatio
-            property int qrSize: 220 * scaleRatio
+            spacing: 11
+            property int qrSize: 220
 
             Rectangle {
                 id: qrContainer
-                color: "#A9A9A9"
+                color: MoneroComponents.Style.blackTheme ? "white" : "transparent"
                 Layout.fillWidth: true
                 Layout.maximumWidth: parent.qrSize
                 Layout.preferredHeight: width
-                radius: 4 * scaleRatio
+                radius: 4
 
                 Image {
                     id: qrCode
                     anchors.fill: parent
-                    anchors.margins: 1 * scaleRatio
+                    anchors.margins: 1
 
                     smooth: false
                     fillMode: Image.PreserveAspectFit
@@ -434,20 +290,39 @@ Rectangle {
                 }
             }
 
-            RowLayout {
-                spacing: parent.spacing
+            MoneroComponents.StandardButton {
+                Layout.preferredWidth: 220
+                small: true
+                text: FontAwesome.save + "  %1".arg(qsTr("Save as image")) + translationManager.emptyString
+                label.font.family: FontAwesome.fontFamily
+                fontSize: 13
+                onClicked: qrFileDialog.open()
+            }
 
-                MoneroComponents.StandardButton {
-                    rightIcon: "../images/download-white.png"
-                    onClicked: qrFileDialog.open()
+            MoneroComponents.StandardButton {
+                Layout.preferredWidth: 220
+                small: true
+                text: FontAwesome.clipboard + "  %1".arg(qsTr("Copy to clipboard")) + translationManager.emptyString
+                label.font.family: FontAwesome.fontFamily
+                fontSize: 13
+                onClicked: {
+                    clipboard.setText(TxUtils.makeQRCodeString(appWindow.current_address));
+                    appWindow.showStatusMessage(qsTr("Copied to clipboard") + translationManager.emptyString, 3);
                 }
+            }
 
-                MoneroComponents.StandardButton {
-                    rightIcon: "../images/external-link-white.png"
-                    onClicked: {
-                        clipboard.setText(TxUtils.makeQRCodeString(appWindow.current_address));
-                        appWindow.showStatusMessage(qsTr("Copied to clipboard"), 3);
-                    }
+            MoneroComponents.StandardButton {
+                Layout.preferredWidth: 220
+                small: true
+                text: FontAwesome.eye + "  %1".arg(qsTr("Show on device")) + translationManager.emptyString
+                label.font.family: FontAwesome.fontFamily
+                fontSize: 13
+                visible: appWindow.currentWallet ? appWindow.currentWallet.isHwBacked() : false
+                onClicked: {
+                    appWindow.currentWallet.deviceShowAddressAsync(
+                        appWindow.currentWallet.currentSubaddressAccount,
+                        appWindow.current_subaddress_table_index,
+                        '');
                 }
             }
         }
@@ -459,7 +334,7 @@ Rectangle {
 
         FileDialog {
             id: qrFileDialog
-            title: qsTr("Please choose a name")
+            title: qsTr("Please choose a name") + translationManager.emptyString
             folder: shortcuts.pictures
             selectExisting: false
             nameFilters: ["Image (*.png)"]
@@ -486,6 +361,7 @@ Rectangle {
     }
 
     function clearFields() {
+        // @TODO: add fields
     }
 
     function onPageClosed() {

@@ -65,9 +65,9 @@ source ./utils.sh
 pushd $(pwd)
 ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 BITTUBE_DIR=bittube
-BITTUBED_EXEC=bittubed
+MONEROD_EXEC=bittubed
 
-MAKE='make -j3'
+MAKE='make'
 if [[ $platform == *bsd* ]]; then
     MAKE='gmake'
 fi
@@ -95,7 +95,7 @@ fi
 if [ "$platform" == "darwin" ]; then
     BIN_PATH=$BIN_PATH/bittube-wallet-gui.app/Contents/MacOS/
 elif [ "$platform" == "mingw64" ] || [ "$platform" == "mingw32" ]; then
-    BITTUBED_EXEC=bittubed.exe
+    MONEROD_EXEC=bittubed.exe
 fi
 
 # force version update
@@ -116,7 +116,7 @@ $MAKE || exit
 
 # Copy bittubed to bin folder
 if [ "$platform" != "mingw32" ] && [ "$ANDROID" != true ]; then
-cp ../$BITTUBE_DIR/bin/$BITTUBED_EXEC $BIN_PATH
+cp ../$BITTUBE_DIR/bin/$MONEROD_EXEC $BIN_PATH
 fi
 
 # make deploy
